@@ -1,0 +1,56 @@
+%%% OASIS_PLAID	%%%
+%% Produces 4 plates.
+
+
+%% Plate dimentions: (this is a 96-well plate)
+num_rows = 16; %% height
+num_cols = 24; %% width
+
+
+horizontal_cell_lines = 1;
+vertical_cell_lines = 1;
+
+allow_empty_wells = false;
+
+concentrations_on_different_rows = true;
+concentrations_on_different_columns = true;
+
+% (Restriction: replicates_on_different_plates /\ replicates_on_same_plate == false)
+replicates_on_different_plates = true;
+replicates_on_same_plate = false;
+
+size_empty_edge = 0;
+
+
+%%% Compounds %%%
+compounds = 40; %% number of drugs/compounds
+compound_concentrations	 = [8| i in 1..compounds]; 
+
+compound_names = ["comp\(i)" | i in 1..compounds];
+
+compound_replicates	 = [2| i in 1..compounds]; 
+
+compound_concentration_names = array2d(1..compounds, 1..8,["\((i mod 8) +1)" | i in 1..compounds*8]);  
+
+compound_concentration_indicators = ["" | i in 1..8]; 
+
+
+%%% Combinations %%%
+combinations = 	0;
+combination_names = [];
+combination_concentration_names = [];
+combination_concentrations = 0;
+
+
+%%% Controls %%%
+num_controls = 9;
+control_replicates = [2*1 | i in 1..8]++[2*32];
+control_concentrations = [4 | i in 1..8]++[1];
+control_names = ["ctrl\(i)" | i in 1..8]++["DMSO"];
+
+control_concentration_names =  array2d(1..num_controls, 1..4,["\((i mod 1) + 1)" | i in 1..8*4]++["0","0","0","0"]);  
+  
+
+
+
+
