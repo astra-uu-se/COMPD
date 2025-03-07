@@ -1,0 +1,16 @@
+plateID,well,cmpdname,CONCuM,cmpdnum,VOLuL
+plate_1,A03,dmso,100,dmso_100
+plate_1,A04,comp2,,comp2_
+plate_1,B02,comp1,,comp1_
+plate_1,B06,dmso,100,dmso_100
+plate_1,B09,dmso,100,dmso_100
+plate_1,C12,dmso,100,dmso_100
+plate_1,D02,dmso,100,dmso_100
+plate_1,E05,dmso,100,dmso_100
+plate_1,E07,comp3,,comp3_
+plate_1,E08,dmso,100,dmso_100
+plate_1,F11,dmso,100,dmso_100
+plate_1,F12,comp4,,comp4_
+plate_1,G01,dmso,100,dmso_100
+plate_1,H04,dmso,100,dmso_100
+plate_1,H07,dmso,100,dmso_100
