@@ -1,0 +1,13 @@
+plateID,well,cmpdname,CONCuM,cmpdnum,VOLuL
+plate_1,B07,[DMSO],1,[DMSO]_1
+plate_1,E07,[DMSO],1,[DMSO]_1
+plate_1,B04,[DMSO],1,[DMSO]_1
+plate_1,E04,[DMSO],1,[DMSO]_1
+plate_1,B06,1,,1_
+plate_1,E06,1,,1_
+plate_1,B03,1,,1_
+plate_1,E03,1,,1_
+plate_1,B05,2,,2_
+plate_1,E05,2,,2_
+plate_1,B02,2,,2_
+plate_1,E02,2,,2_
