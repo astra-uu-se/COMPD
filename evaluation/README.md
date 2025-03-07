@@ -10,7 +10,7 @@ The materials include:
 
 
 # The test dataset
-The data files are placed in the folder `regression-tests\`. Some of the examples are taken from https://github.com/pharmbio/plaid/tree/main/regression-tests and renamed. The list of matches between the old filenames and the new filenames is in the end of this readme text (section 'Dataset matching')
+The data files are placed in the folder `regression-tests\`. Some of the examples are taken from https://github.com/pharmbio/plaid/tree/main/regression-tests and renamed. The list of matches between the old filenames and the new filenames is at the end of this readme text (section 'Dataset matching')
 
 
 # Model files
@@ -23,12 +23,12 @@ The repository contains the following model files written in MiniZinc format (ht
 	- `plate-design.mzn` to generate a layout. Source: https://github.com/pharmbio/plaid/blob/9bc23c5e0ec4c966b8ba4f6e549a8fe87d9a737f/plate-design.mzn (the version from Oct 11, 2024)
 	- `layout_predicates.mzn`, contains predicates used by `plate-design.mzn`. Source: https://github.com/pharmbio/plaid/blob/33367a41c9a0902c2855e706692c8c8863dfa964/layout_predicates.mzn (the version from Aug 14, 2024)
 - for COMPD:
-	- `plate-optimizer.mzn`, the full package, generates a layout from a data file and outputs it in the format compatible with *.csv files
-	- `plate-optimizer-model.mzn`, contains only the constraints and pre-calculculations from `plate-optimizer.mzn`, i.e. equations (4)--(20) from the article
-	- `plate-optimizer-strategy-default.mzn`, contains only the optimization criteria from `plate-optimizer.mzn` and the default search strategy. Requires to be used together with `plate-optimizer-model.mzn`. For future testing, alternative search strategies could be introduced in different files, while retaining the compatibility with `plate-optimizer-model.mzn` and `plate-optimizer-output.mzn`.
+	- `plate-optimizer.mzn`, the full package, generates a layout from a data file and outputs it in the format compatible with *.csv files (the version from March 7, 2025)
+	- `plate-optimizer-model.mzn`, contains only the constraints and pre-calculations from `plate-optimizer.mzn`, i.e. equations (4)--(20) from the article (the version from March 7, 2025)
+	- `plate-optimizer-strategy-default.mzn`, contains only the optimization criteria from `plate-optimizer.mzn` and the default search strategy. It requires being used together with `plate-optimizer-model.mzn`. For future testing, alternative search strategies could be introduced in different files, while retaining the compatibility with `plate-optimizer-model.mzn` and `plate-optimizer-output.mzn`.
 	- `plate-optimizer-output.mzn`, to output the produced microplate layout either in a *.csv file compatible format or output debugging information.
 	- `plate-optimizer-output-warm-start.mzn`, outputs all the variables required for the warm start. Requires to be used together with `plate-optimizer-model.mzn`
-	- `plate-optimizer-strategy-generated.mzn`, generated authomatically by a script after running `plate-optimizer-model.mzn` and `plate-optimizer-output-warm-start.mzn`. This model file is ran together with `plate-optimizer-model.mzn` and `plate-optimizer-output.mzn` and uses warm start variables for Chuffed.
+	- `plate-optimizer-strategy-generated.mzn`, generated automatically by a script after running `plate-optimizer-model.mzn` and `plate-optimizer-output-warm-start.mzn`. This model file is run together with `plate-optimizer-model.mzn` and `plate-optimizer-output.mzn` and uses warm start variables for Chuffed.
 
 
 # Executing computational experiments
