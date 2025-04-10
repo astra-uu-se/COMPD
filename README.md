@@ -28,4 +28,4 @@ COMPD is developed by [Ramiz Gindullin](https://orcid.org/0000-0003-4947-9641) a
 Paper (TBD add link) can be used to cite COMPD.
 
 ## License
-PLAID has an Apache 2.0 LICENSE. The PLAID team accepts no responsibility or liability for the use of PLAID or any direct or indirect damages arising out of its use.
+COMPD has an Apache 2.0 LICENSE. The COMPD team accepts no responsibility or liability for the use of COMPD or any direct or indirect damages arising out of its use.
