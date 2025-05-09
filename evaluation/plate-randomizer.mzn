@@ -1,4 +1,4 @@
-% Copyright 2025 COMPD Authors.
+% Copyright 2021 PLAID Authors.
 %
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
@@ -393,18 +393,16 @@ output [if not debugging then "plate_\(p),"
       then "0" else "" endif
  ++ "\(calculate_line_index(inner_empty_edge, size_empty_edge, num_cols_line, v, y[p,fix(random_indices[p,k])]))"
  ++ ","
- ++ emptywells_controls_compounds_names_concentrations[1,emptywells_controls_compounds_indices_ordered[p,k]]
+ ++ emptywells_controls_compounds_names_concentrations[1,emptywells_controls_compounds_indices_ordered[p,fix(random_indices[p,k])]]
  ++ ","
- ++ emptywells_controls_compounds_names_concentrations[2,emptywells_controls_compounds_indices_ordered[p,k]]
+ ++ emptywells_controls_compounds_names_concentrations[2,emptywells_controls_compounds_indices_ordered[p,fix(random_indices[p,k])]]
  ++ ","
- ++ emptywells_controls_compounds_names_concentrations[1,emptywells_controls_compounds_indices_ordered[p,k]]
+ ++ emptywells_controls_compounds_names_concentrations[1,emptywells_controls_compounds_indices_ordered[p,fix(random_indices[p,k])]]
  ++ "_"
- ++ emptywells_controls_compounds_names_concentrations[2,emptywells_controls_compounds_indices_ordered[p,k]]
+ ++ emptywells_controls_compounds_names_concentrations[2,emptywells_controls_compounds_indices_ordered[p,fix(random_indices[p,k])]]
  ++ "\n" else "" endif | p in 1..num_plates_lines, k in 1..num_total_wells_line,
                          h in 1..horizontal_cell_lines, v in 1..vertical_cell_lines
                          where fix(emptywells_controls_compounds_indices_ordered[p,random_indices[p,k]]) > 1];
                              % fix(emptywells_controls_compounds_indices_ordered[p,k]) = 1]; % output only empty wells
 
 output ["criteria function = -1000\n"];
-
-%output [show2d(random_indices)];
