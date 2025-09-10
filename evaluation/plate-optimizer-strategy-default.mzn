@@ -1,1 +1,0 @@
-solve minimize - min_distance * 1000 - sum(distances_edges_controls_compounds_minimum);
