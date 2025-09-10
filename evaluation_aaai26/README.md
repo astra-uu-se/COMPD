@@ -38,4 +38,4 @@ Either:
 
 ## Step 3 - update the supplementary materials
 
-We only provide the source code for the document. Use figures from the `generated-plots` directory.
+We only provide the source code for the document (see `supplementary materials` directory). Use figures from the `generated-plots` directory that match the name in the LaTeX code
