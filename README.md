@@ -14,11 +14,13 @@ This is a constraint optimization model written in MiniZinc. It is used for effe
 
 The full explanation can be found in the paper "Constraint Optimization of MicroPlate Designs" (TBD: link and DOI)
 
-To test, you can use the `*.dzn` from `evaluation/regression-tests` directory or a small example from `https://github.com/pharmbio/plaid/blob/main/small-example.dzn`
+To test, you can use the `*.dzn` files from `evaluation/regression-tests` directory or a small example from `https://github.com/pharmbio/plaid/blob/main/small-example.dzn`
+
+To make the workflow with COMPD more fluid and intuitive, you can use [GUI-for-MiniZinc-microplates-models](https://github.com/astra-uu-se/GUI-for-MiniZinc-microplates-models).
 
 
 ## Evaluation
-The directory `evaluation` contains instructions on how to execute the evaluation section of the paper.
+The directory `evaluation` contains instructions on how to execute the evaluation section of the paper. Note that the current version of [plate-optimizer.mzn](https://github.com/astra-uu-se/COMPD/blob/main/plate-optimizer.mzn) can differ from the [version](https://github.com/astra-uu-se/COMPD/blob/main/evaluation_aaai26/compd-files/plate-optimizer-model.mzn) used in the evaluation (as it was updated since).
 
 
 ## Credits
