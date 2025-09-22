@@ -1,4 +1,4 @@
-% Copyright 2021 PLAID Authors.
+% Copyright 2025 COMPD Authors.
 %
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
@@ -600,21 +600,34 @@ array[1..num_plates_lines, 1..num_criteria_sets] of bool: use_fake_edge_wells =
                                           [if  num_criteria_set_line[p,j] =  0 then false
                                        elseif  emptywells_controls_compounds_criteria_sets_categories[p,j] = "ctrs" then false
                                        elseif  emptywells_controls_compounds_criteria_sets_categories[p,j] = "ew"   then false
-                                         else (num_criteria_set_line[p,j] <= 4)
+                                         else (num_criteria_set_line[p,j] <= 6)
                                            endif | p in 1..num_plates_lines, j in 1..num_criteria_sets]);
 
-int: num_edges = 8;
+int: num_edges = 16;
 % Fake edges are always generated
 array[1..num_edges,1..2] of int: edges = array2d(1..num_edges,1..2,
                                                  [0,                 0,
-                                                  num_rows_line + 1, 1,
-                                                  1,                 num_cols_line + 1,
-                                                  num_rows_line + 1, num_cols_line + 1 ]
-                                                 ++
-                                                 [0,                            floor(num_cols_line / 2),
-                                                  floor(num_rows_line / 2) + 1, num_cols_line + 1,
-                                                  num_rows_line + 1,            floor(num_cols_line / 2) + 1,
-                                                  floor(num_rows_line / 2),     0 ]);
+                                                  num_rows_line + 1, 0,
+                                                  0,                 num_cols_line + 1,
+                                                  num_rows_line + 1, num_cols_line + 1,
+                                                  
+												  num_rows_line + 2,            floor(1 * num_cols_line / 4),
+                                                  num_rows_line + 2,            floor(2 * num_cols_line / 4),
+												  num_rows_line + 2,            floor(3 * num_cols_line / 4),
+												  
+												  -1,                           floor(1 * num_cols_line / 4),
+                                                  -1,                           floor(2 * num_cols_line / 4),
+												  -1,                           floor(3 * num_cols_line / 4),
+												  
+												  floor(1 * num_rows_line / 4), num_cols_line + 2,
+												  floor(2 * num_rows_line / 4), num_cols_line + 2,
+												  floor(3 * num_rows_line / 4), num_cols_line + 2,
+												  
+												  floor(1 * num_rows_line / 4), -1,
+												  floor(2 * num_rows_line / 4), -1,
+												  floor(3 * num_rows_line / 4), -1
+												  
+												  ]);
 int: min_dist_edges = (min([num_rows_line, num_cols_line]) div 2);
                                       
 % Calculate distance matrix edges and wells
@@ -842,6 +855,7 @@ constraint forall(p in 1..num_plates_lines, i in 1..num_criteria_sets where use_
 array[1..len_min_dist_criteria] of var 1..max(2, num_rows_line + num_cols_line - 2):
       distances_edges_controls_compounds_minimum;
 
+
 constraint forall(j in 1..len_min_dist_criteria)
                  (distances_edges_controls_compounds_minimum[j] = 
                      min(slice_1d(min_dist_criteria_vars,
@@ -854,46 +868,28 @@ constraint forall(j in 1..len_min_dist_criteria)
                                   )
                  );
 
+% emptywells_controls_compounds_criteria_sets_categories[p,j] = "ctrs"
+
 var 1..max(2, num_rows_line + num_cols_line - 2): min_distance;
+var 1..max(2, num_rows_line + num_cols_line - 2): min_distance_ctrs;
+
 %constraint min_distance = if len_min_dist_criteria > 0 then min(min_dist_criteria_vars) else 1 endif;
 constraint min_distance = if len_min_dist_criteria > 0 then min(distances_edges_controls_compounds_minimum) else 1 endif;
+constraint min_distance_ctrs = 
+			if length([0 | p in 1..num_plates_lines, i in 1..num_criteria_sets
+						   where use_min_dist_criteria[p,i] /\ emptywells_controls_compounds_criteria_sets_categories[p,i] = "ctrs"]) > 0
+		  then  min([min(slice_1d(min_dist_criteria_vars,
+		                          [min_dist_criteria_counts_starts[p,i]
+		                           ..min_dist_criteria_counts_ends[p,i]],
+		                          1..min_dist_criteria_lengths[p,i])
+		   							)
+		             | p in 1..num_plates_lines, i in 1..num_criteria_sets
+				      where use_min_dist_criteria[p,i] /\ emptywells_controls_compounds_criteria_sets_categories[p,i] = "ctrs"])
+		  else 1 endif;
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-solve/*::seq_search(
-                        [warm_start(array1d(emptywells_controls_compounds_coordinates), ),
-                         warm_start(array1d(wells_line_lex_all_different_substitute), ),
-                         warm_start(min_dist_criteria_vars, ),
-                         warm_start(distances_edges_controls_compounds_minimum, ),
-                         warm_start([min_distance], [1])
-                         ]) */
-
-   /*::seq_search(if num_total_wells_line >= 300 then % main search strategy
-                  [int_search([emptywells_controls_compounds_coordinates[p,i,j]
-                               | i in 1..num_total_wells_line, j in 1..2, p in 1..num_plates_lines
-                                 where use_min_dist_criteria[p,emptywells_controls_compounds_criteria_ordered[p,i]]],
-                              first_fail, indomain_random)
-                   ] else [] endif
-                  )
-  /*::seq_search(if num_total_wells_line >= 300 then % main search strategy
-                  [int_search([min_distance], first_fail, indomain_median),
-                   int_search(distances_edges_controls_compounds_minimum, anti_first_fail, indomain_min),
-                   int_search([emptywells_controls_compounds_coordinates[p,i,j]
-                               | i in 1..num_total_wells_line, j in 1..2, p in 1..num_plates_lines
-                                 where use_min_dist_criteria[p,emptywells_controls_compounds_criteria_ordered[p,i]]],
-                              first_fail, indomain_median)
-                   ] else [] endif
-                  )
-/*solve::seq_search(if num_total_wells_line >= 300 then  % an alternative search strategy, in rare cases when previous strategy fails to produce a solution
-                  [int_search([min_distance], input_order, indomain),
-                   int_search(distances_edges_controls_compounds_minimum, anti_first_fail, indomain_min),
-                   int_search([emptywells_controls_compounds_coordinates[p,i,j]
-                              | i in 1..num_total_wells_line, j in 1..2, p in 1..num_plates_lines
-                                where use_min_dist_criteria[p,emptywells_controls_compounds_criteria_ordered[p,i]]],
-                                           first_fail, indomain_median)
-                   ] else [] endif
-                  )*/
-      minimize - min_distance * 1000 - sum(distances_edges_controls_compounds_minimum);
-     %satisfy;
+solve minimize - min_distance * 1000 - min_distance_ctrs * 100 - sum(distances_edges_controls_compounds_minimum);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Debugging output %%%
