@@ -1,4 +1,4 @@
-% Copyright 2025 COMPD Authors.
+% Copyright 2021 PLAID Authors.
 %
 % Licensed under the Apache License, Version 2.0 (the "License");
 % you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 % Description:  A microplate layout designer represented as an optimization problem
 %
 % Authors: Ramiz GINDULLIN (ramiz.gindullin@it.uu.se)
-% Version: 1.0
-% Last Revision: January 2025
+% Version: 1.1
+% Last Revision: September 2025
 %
 
 include "globals.mzn";
@@ -126,8 +126,8 @@ constraint assert((2*num_corner_empty_wells <= max([num_rows_line, num_cols_line
 %%% Model Parameters - tune to change performance / quality of a solution %%%
 % TODO: rewrite this block (and the corresponding part later) to be more clear (an easy fix)
 int: num_wells_set_criteria              = if num_total_wells_line < 300 then 90   else 120  endif;
-float: num_threshold_min_dist_criteria   = if num_total_wells_line < 300 then 0.45 else 0.35 endif;
-float: num_threshold_use_fake_edge_wells = if num_total_wells_line < 300 then 0.15 else 0.1  endif; 
+float: num_threshold_min_dist_criteria   = if num_total_wells_line < 300 then 0.35 else 0.25 endif;
+float: num_threshold_use_fake_edge_wells = if num_total_wells_line < 300 then 0.05 else 0.03 endif; 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -391,6 +391,29 @@ array[1..num_plates_lines, 1..num_criteria_sets] of set of int:
                    )[r]
                  | p in 1..num_plates_lines, r in 1..num_criteria_sets]);
 
+array[1..num_plates_lines, 1..num_criteria_sets] of string:
+         emptywells_controls_compounds_criteria_sets_categories =
+           array2d(1..num_plates_lines, 1..num_criteria_sets,
+                [(["ew"]
+                    ++
+                   if sum(i in 1..len_emptywells_controls_compounds where emptywells_controls_compounds_categories[i] = "ctrs")
+                         (emptywells_controls_compounds_qtys[p,i]) < num_total_wells_line div 2
+                   then  ["ctrs"]
+                   else  ["ctrs" | i in 1..len_emptywells_controls_compounds where emptywells_controls_compounds_categories[i] = "ctrs"]
+                   endif
+                    ++
+                   ["comp"
+                    | j in 1..compounds, k in 1..(if sum(l in 1..len_emptywells_controls_compounds
+                                                         where emptywells_controls_compounds_names_concentrations[1,l] =
+                                                               compound_names[j])(emptywells_controls_compounds_qtys[p,l]) < num_total_wells_line div 2
+                                                then 1
+                                                else sum(l in 1..len_emptywells_controls_compounds
+                                                         where emptywells_controls_compounds_names_concentrations[1,l] = compound_names[j])(1)
+                                                endif)]
+                    ++
+                   ["" | i in 1..(num_criteria_sets - len_emptywells_controls_compounds_criteria_sets[p])]
+                   )[r]
+                 | p in 1..num_plates_lines, r in 1..num_criteria_sets]);
 
 array[1..num_plates_lines, 1..num_total_wells_line] of int: emptywells_controls_compounds_indices_ordered =
                              % Perform a test for non-negative values
@@ -473,11 +496,12 @@ constraint assert(not use_quadrant_distribution -> (num_corner_empty_wells = 0),
 %   to account for this we need to collect flags to denote which compound concentrations on which plate will be subjected to this treatment
 % - we add an array - if the number of replicates of a concentration across all plates is less than the number of rows/columns
 %   then the all_different constraint isn't just applied per single plate but across all plates (a stronger constraint)
+array[int] of string: not_force_optional_ctrs = ["ew"];
 array[1..num_plates_lines, 1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_rows =
        array2d(1..num_plates_lines, 1..len_emptywells_controls_compounds,
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in ["ew","ctrs"]
+               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the flags is false we use the default behaviour
             elseif not concentrations_on_different_rows
@@ -497,7 +521,7 @@ array[1..num_plates_lines, 1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_columns =
        array2d(1..num_plates_lines, 1..len_emptywells_controls_compounds,
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in ["ew","ctrs"]
+               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the flags is false we use the default behaviour
             elseif not concentrations_on_different_columns
@@ -516,7 +540,7 @@ array[1..num_plates_lines, 1..len_emptywells_controls_compounds] of bool:
 array[1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_rows_all_plates =
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in ["ew","ctrs"]
+               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the flags is false we use the default behaviour
             elseif not concentrations_on_different_rows
@@ -535,7 +559,7 @@ array[1..len_emptywells_controls_compounds] of bool:
 array[1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_columns_all_plates =
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in ["ew","ctrs"]
+               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the flags is false we use the default behaviour
             elseif not concentrations_on_different_columns
@@ -574,7 +598,9 @@ array[1..num_plates_lines, 1..num_criteria_sets] of bool: use_min_dist_criteria 
 array[1..num_plates_lines, 1..num_criteria_sets] of bool: use_fake_edge_wells =
                                   array2d(1..num_plates_lines, 1..num_criteria_sets,
                                           [if  num_criteria_set_line[p,j] =  0 then false
-                                         else (num_criteria_set_line[p,j] <= num_threshold_use_fake_edge_wells * num_total_wells_line)
+                                       elseif  emptywells_controls_compounds_criteria_sets_categories[p,j] = "ctrs" then false
+                                       elseif  emptywells_controls_compounds_criteria_sets_categories[p,j] = "ew"   then false
+                                         else (num_criteria_set_line[p,j] <= 4)
                                            endif | p in 1..num_plates_lines, j in 1..num_criteria_sets]);
 
 int: num_edges = 8;
@@ -741,7 +767,7 @@ constraint forall(p in 1..num_plates_lines, i in 1..4, j in 1..len_emptywells_co
                                              (emptywells_controls_compounds_concentrations_on_different_rows[p,j] \/
                                               emptywells_controls_compounds_concentrations_on_different_columns[p,j])
                                        ])));
-                                       
+
 % apply all_different constraints when concentrations_on_different_rows and/or concentrations_on_different_columns within a plate
 constraint forall(p in 1..num_plates_lines, i in 1..len_emptywells_controls_compounds
                   where emptywells_controls_compounds_concentrations_on_different_rows[p,i])
