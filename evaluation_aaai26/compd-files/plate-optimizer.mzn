@@ -17,7 +17,7 @@
 %
 % Authors: Ramiz GINDULLIN (ramiz.gindullin@it.uu.se)
 % Version: 1.0
-% Last Revision: January 2025
+% Last Revision: July 2025
 %
 
 include "globals.mzn";
