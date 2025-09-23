@@ -16,7 +16,7 @@
 % Description:  A microplate layout designer represented as an optimization problem
 %
 % Authors: Ramiz GINDULLIN (ramiz.gindullin@it.uu.se)
-% Version: 1.1
+% Version: 1.1.1
 % Last Revision: September 2025
 %
 
@@ -47,7 +47,8 @@ bool: concentrations_on_different_columns;
 int: horizontal_cell_lines;
 int: vertical_cell_lines;
 int: size_empty_edge;
-bool: inner_empty_edge = true; % Question - what does it do?
+opt bool: inner_empty_edge_input;
+bool: inner_empty_edge = inner_empty_edge_input default true;
 
 %% Compounds %%
 int: compounds; %% number of drugs/compounds
