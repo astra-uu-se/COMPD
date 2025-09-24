@@ -16,7 +16,7 @@
 % Description:  A microplate layout designer represented as an optimization problem
 %
 % Authors: Ramiz GINDULLIN (ramiz.gindullin@it.uu.se)
-% Version: 1.1.1
+% Version: 1.2
 % Last Revision: September 2025
 %
 
@@ -498,20 +498,47 @@ constraint assert(not use_quadrant_distribution -> (num_corner_empty_wells = 0),
 % - we add an array - if the number of replicates of a concentration across all plates is less than the number of rows/columns
 %   then the all_different constraint isn't just applied per single plate but across all plates (a stronger constraint)
 array[int] of string: not_force_optional_ctrs = ["ew"];
+
+% Changes from version 1.1:
+% If a half (top/bottom/right/left) has leq nb of wells than its nb of rows/columns then apply all_different (same as before)
+% If a half (top/bottom/right/left) has gt  nb of wells than its nb of rows/columns then apply gcc
+%    to make sure that there are at least one well per row/column in this half.
+% Thus we'll first split existing flags emptywells_controls_compounds_concentrations_on_different_* into:
+%  - emptywells_controls_compounds_concentrations_on_different_rows_top (top)
+%  - emptywells_controls_compounds_concentrations_on_different_rows_btm (bottom)
+%  - emptywells_controls_compounds_concentrations_on_different_columns_lft (left)
+%  - emptywells_controls_compounds_concentrations_on_different_columns_rgt (right)
+% Same with flags emptywells_controls_compounds_concentrations_on_different_*_all_plates
+% This behaviour should:
+%  - reduce the number of situations when the model is unsatisfiable due to optional constraints
+%  - ensure that every row/column is covered if there are too many wells with the criteria set (previously it was not enforced)
+%  - the previous point, potentially, can lead to increased performance as the number of well placements is reduced (to be tested)
 array[1..num_plates_lines, 1..len_emptywells_controls_compounds] of bool:
-      emptywells_controls_compounds_concentrations_on_different_rows =
+      emptywells_controls_compounds_concentrations_on_different_rows_top =
        array2d(1..num_plates_lines, 1..len_emptywells_controls_compounds,
                  % no matter the flags, empty wells and controls are exempt from the treatment
                [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
-                % if the flags is false we use the default behaviour
+                % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_rows
               then false
             elseif (sum(k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [1,3] /\
                                                            emptywells_controls_compounds_indices_ordered[p,k] = i)(1)
                     > floor(num_rows_line / 2)) % quadrants I+III
-                   \/
-                   (sum(k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [2,4] /\
+              then false
+              else true
+             endif
+                | p in 1..num_plates_lines, i in 1..len_emptywells_controls_compounds]);
+array[1..num_plates_lines, 1..len_emptywells_controls_compounds] of bool:
+      emptywells_controls_compounds_concentrations_on_different_rows_btm =
+       array2d(1..num_plates_lines, 1..len_emptywells_controls_compounds,
+                 % no matter the flags, empty wells and controls are exempt from the treatment
+               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+              then false
+                % if the input flag is false we use the default behaviour
+            elseif not concentrations_on_different_rows
+              then false
+            elseif (sum(k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [2,4] /\
                                                            emptywells_controls_compounds_indices_ordered[p,k] = i)(1)
                     > ceil(num_rows_line / 2))  % quadrants II+IV
               then false
@@ -519,19 +546,31 @@ array[1..num_plates_lines, 1..len_emptywells_controls_compounds] of bool:
              endif
                 | p in 1..num_plates_lines, i in 1..len_emptywells_controls_compounds]);
 array[1..num_plates_lines, 1..len_emptywells_controls_compounds] of bool:
-      emptywells_controls_compounds_concentrations_on_different_columns =
+      emptywells_controls_compounds_concentrations_on_different_columns_lft =
        array2d(1..num_plates_lines, 1..len_emptywells_controls_compounds,
                  % no matter the flags, empty wells and controls are exempt from the treatment
                [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
-                % if the flags is false we use the default behaviour
+                % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_columns
               then false
             elseif (sum(k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [1,2] /\
                                                            emptywells_controls_compounds_indices_ordered[p,k] = i)(1)
                     > ceil(num_cols_line / 2))  % quadrants I+II
-                   \/
-                   (sum(k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [3,4] /\
+              then false
+              else true
+             endif
+                | p in 1..num_plates_lines, i in 1..len_emptywells_controls_compounds]);
+array[1..num_plates_lines, 1..len_emptywells_controls_compounds] of bool:
+      emptywells_controls_compounds_concentrations_on_different_columns_rgt =
+       array2d(1..num_plates_lines, 1..len_emptywells_controls_compounds,
+                 % no matter the flags, empty wells and controls are exempt from the treatment
+               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+              then false
+                % if the input flag is false we use the default behaviour
+            elseif not concentrations_on_different_columns
+              then false
+            elseif (sum(k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [3,4] /\
                                                            emptywells_controls_compounds_indices_ordered[p,k] = i)(1)
                     > floor(num_cols_line / 2)) % quadrants III+IV
               then false
@@ -539,18 +578,29 @@ array[1..num_plates_lines, 1..len_emptywells_controls_compounds] of bool:
              endif
                 | p in 1..num_plates_lines, i in 1..len_emptywells_controls_compounds]);
 array[1..len_emptywells_controls_compounds] of bool:
-      emptywells_controls_compounds_concentrations_on_different_rows_all_plates =
+      emptywells_controls_compounds_concentrations_on_different_rows_all_plates_top =
                  % no matter the flags, empty wells and controls are exempt from the treatment
                [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
-                % if the flags is false we use the default behaviour
+                % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_rows
               then false
             elseif (sum(p in 1..num_plates_lines, k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [1,3] /\
                                                            emptywells_controls_compounds_indices_ordered[p,k] = i)(1)
                     > floor(num_rows_line / 2)) % quadrants I+III
-                   \/
-                   (sum(p in 1..num_plates_lines, k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [2,4] /\
+              then false
+              else true
+             endif
+                | i in 1..len_emptywells_controls_compounds];
+array[1..len_emptywells_controls_compounds] of bool:
+      emptywells_controls_compounds_concentrations_on_different_rows_all_plates_btm =
+                 % no matter the flags, empty wells and controls are exempt from the treatment
+               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+              then false
+                % if the input flag is false we use the default behaviour
+            elseif not concentrations_on_different_rows
+              then false
+            elseif (sum(p in 1..num_plates_lines, k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [2,4] /\
                                                            emptywells_controls_compounds_indices_ordered[p,k] = i)(1)
                     > ceil(num_rows_line / 2))  % quadrants II+IV
               then false
@@ -558,18 +608,29 @@ array[1..len_emptywells_controls_compounds] of bool:
              endif
                 | i in 1..len_emptywells_controls_compounds];
 array[1..len_emptywells_controls_compounds] of bool:
-      emptywells_controls_compounds_concentrations_on_different_columns_all_plates =
+      emptywells_controls_compounds_concentrations_on_different_columns_all_plates_lft =
                  % no matter the flags, empty wells and controls are exempt from the treatment
                [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
-                % if the flags is false we use the default behaviour
+                % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_columns
               then false
             elseif (sum(p in 1..num_plates_lines, k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [1,2] /\
                                                            emptywells_controls_compounds_indices_ordered[p,k] = i)(1)
                     > ceil(num_cols_line / 2))  % quadrants I+II
-                   \/
-                   (sum(p in 1..num_plates_lines, k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [3,4] /\
+              then false
+              else true
+             endif
+                | i in 1..len_emptywells_controls_compounds];
+array[1..len_emptywells_controls_compounds] of bool:
+      emptywells_controls_compounds_concentrations_on_different_columns_all_plates_rgt =
+                 % no matter the flags, empty wells and controls are exempt from the treatment
+               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+              then false
+                % if the input flag is false we use the default behaviour
+            elseif not concentrations_on_different_columns
+              then false
+            elseif (sum(p in 1..num_plates_lines, k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [3,4] /\
                                                            emptywells_controls_compounds_indices_ordered[p,k] = i)(1)
                     > floor(num_cols_line / 2)) % quadrants III+IV
               then false
@@ -667,20 +728,31 @@ array[1..num_plates_lines, 1..num_criteria_sets] of int: min_dist_criteria_count
 
 % Counting tensors - count number of elements per plate, quadrant, criteria set / concentration
 % They are used for symmetry breaking constraints
+% TODO: check if I can just tie their conditions from flags emptywells_controls_compounds_concentrations_on_different_*
+%       to simply input flags concentrations_on_different_*
 array[1..num_plates_lines, 1..4, 1..num_criteria_sets] of int: min_dist_quadrant_criteria_counts =
     array3d(1..num_plates_lines, 1..4, 1..num_criteria_sets,
             [ sum([1 | k in 1..num_total_wells_line where emptywells_controls_compounds_criteria_ordered[p,k] = j
                                                           /\ quadrant_wells_assignment[p,k] = i /\
-                                                         (not emptywells_controls_compounds_concentrations_on_different_rows[p,j]) /\
-                                                         (not emptywells_controls_compounds_concentrations_on_different_columns[p,j])
+                                                         (i in [1,3] -> not emptywells_controls_compounds_concentrations_on_different_rows_top[p,j]) /\
+                                                         (i in [2,4] -> not emptywells_controls_compounds_concentrations_on_different_rows_btm[p,j]) /\
+                                                         (i in [1,2] -> not emptywells_controls_compounds_concentrations_on_different_columns_lft[p,j]) /\
+                                                         (i in [3,4] -> not emptywells_controls_compounds_concentrations_on_different_columns_rgt[p,j])
                    ])
              | p in 1..num_plates_lines, i in 1..4, j in 1..num_criteria_sets]);
 array[1..num_plates_lines, 1..4, 1..len_emptywells_controls_compounds] of int: min_dist_quadrant_on_different_rows_columns =
     array3d(1..num_plates_lines, 1..4, 1..len_emptywells_controls_compounds,
             [ sum([1 | k in 1..num_total_wells_line where emptywells_controls_compounds_indices_ordered[p,k] = j
                                                           /\ quadrant_wells_assignment[p,k] = i /\
-                                                          (emptywells_controls_compounds_concentrations_on_different_rows[p,j] \/
-                                                           emptywells_controls_compounds_concentrations_on_different_columns[p,j])
+                                                          ((i = 1 -> emptywells_controls_compounds_concentrations_on_different_rows_top[p,j] \/
+                                                                     emptywells_controls_compounds_concentrations_on_different_columns_lft[p,j]) /\
+                                                           (i = 2 -> emptywells_controls_compounds_concentrations_on_different_rows_btm[p,j] \/
+                                                                     emptywells_controls_compounds_concentrations_on_different_columns_lft[p,j]) /\
+                                                           (i = 3 -> emptywells_controls_compounds_concentrations_on_different_rows_top[p,j] \/
+                                                                     emptywells_controls_compounds_concentrations_on_different_columns_rgt[p,j]) /\
+                                                           (i = 4 -> emptywells_controls_compounds_concentrations_on_different_rows_btm[p,j] \/
+                                                                     emptywells_controls_compounds_concentrations_on_different_columns_rgt[p,j])
+                                                           )
                    ])
              | p in 1..num_plates_lines, i in 1..4, j in 1..len_emptywells_controls_compounds]);
 
@@ -767,8 +839,10 @@ constraint forall(p in 1..num_plates_lines, i in 1..4, j in 1..num_criteria_sets
                                       [emptywells_controls_compounds_coordinates[p,k,l] | l in 1..2, k in 1..num_total_wells_line
                                        where emptywells_controls_compounds_criteria_ordered[p,k] = j
                                              /\ quadrant_wells_assignment[p,k] = i /\
-                                             (not emptywells_controls_compounds_concentrations_on_different_rows[p,j]) /\
-                                             (not emptywells_controls_compounds_concentrations_on_different_columns[p,j]) /\
+                                             (i in [1,3] -> not emptywells_controls_compounds_concentrations_on_different_rows_top[p,j]) /\
+                                             (i in [2,4] -> not emptywells_controls_compounds_concentrations_on_different_rows_btm[p,j]) /\
+                                             (i in [1,2] -> not emptywells_controls_compounds_concentrations_on_different_columns_lft[p,j]) /\
+                                             (i in [3,4] -> not emptywells_controls_compounds_concentrations_on_different_columns_rgt[p,j]) /\
                                              (j = 1 -> use_min_dist_criteria[p,j]) % exlude empty wells if not a part of the criteria
                                        ])));
 
@@ -778,30 +852,161 @@ constraint forall(p in 1..num_plates_lines, i in 1..4, j in 1..len_emptywells_co
                                       [emptywells_controls_compounds_coordinates[p,k,l] | l in 1..2, k in 1..num_total_wells_line
                                        where emptywells_controls_compounds_indices_ordered[p,k] = j
                                              /\ quadrant_wells_assignment[p,k] = i /\
-                                             (emptywells_controls_compounds_concentrations_on_different_rows[p,j] \/
-                                              emptywells_controls_compounds_concentrations_on_different_columns[p,j])
+                                             ((i = 1 -> emptywells_controls_compounds_concentrations_on_different_rows_top[p,j] \/
+                                                        emptywells_controls_compounds_concentrations_on_different_columns_lft[p,j]) /\
+                                              (i = 2 -> emptywells_controls_compounds_concentrations_on_different_rows_btm[p,j] \/
+                                                        emptywells_controls_compounds_concentrations_on_different_columns_lft[p,j]) /\
+                                              (i = 3 -> emptywells_controls_compounds_concentrations_on_different_rows_top[p,j] \/
+                                                        emptywells_controls_compounds_concentrations_on_different_columns_rgt[p,j]) /\
+                                              (i = 4 -> emptywells_controls_compounds_concentrations_on_different_rows_btm[p,j] \/
+                                                        emptywells_controls_compounds_concentrations_on_different_columns_rgt[p,j]))
                                        ])));
 
-% apply all_different constraints when concentrations_on_different_rows and/or concentrations_on_different_columns within a plate
+% Optional ctrs: apply all_different/gcc constraints when concentrations_on_different_rows and/or concentrations_on_different_columns WITHIN a plate
 constraint forall(p in 1..num_plates_lines, i in 1..len_emptywells_controls_compounds
-                  where emptywells_controls_compounds_concentrations_on_different_rows[p,i])
+                  where emptywells_controls_compounds_concentrations_on_different_rows_top[p,i])
                  (all_different([emptywells_controls_compounds_coordinates[p,j,1] | j in 1..num_total_wells_line
-                                 where emptywells_controls_compounds_indices_ordered[p,j] = i]));
+                                 where emptywells_controls_compounds_indices_ordered[p,j] = i /\ quadrant_wells_assignment[p,j] in [1,3]]));
 constraint forall(p in 1..num_plates_lines, i in 1..len_emptywells_controls_compounds
-                  where emptywells_controls_compounds_concentrations_on_different_columns[p,i])
+                  where emptywells_controls_compounds_concentrations_on_different_rows_btm[p,i])
+                 (all_different([emptywells_controls_compounds_coordinates[p,j,1] | j in 1..num_total_wells_line
+                                 where emptywells_controls_compounds_indices_ordered[p,j] = i /\ quadrant_wells_assignment[p,j] in [2,4]]));
+constraint forall(p in 1..num_plates_lines, i in 1..len_emptywells_controls_compounds
+                  where emptywells_controls_compounds_concentrations_on_different_columns_lft[p,i])
                  (all_different([emptywells_controls_compounds_coordinates[p,j,2] | j in 1..num_total_wells_line
-                                 where emptywells_controls_compounds_indices_ordered[p,j] = i]));
-% apply all_different constraints when concentrations_on_different_rows and/or concentrations_on_different_columns across all plates
-constraint forall(i in 1..len_emptywells_controls_compounds
-                  where emptywells_controls_compounds_concentrations_on_different_rows_all_plates[i])
-                 (all_different([emptywells_controls_compounds_coordinates[p,j,1] | p in 1..num_plates_lines, j in 1..num_total_wells_line
-                                 where emptywells_controls_compounds_indices_ordered[p,j] = i]));
-constraint forall(i in 1..len_emptywells_controls_compounds
-                  where emptywells_controls_compounds_concentrations_on_different_columns_all_plates[i])
-                 (all_different([emptywells_controls_compounds_coordinates[p,j,2] | p in 1..num_plates_lines, j in 1..num_total_wells_line
-                                 where emptywells_controls_compounds_indices_ordered[p,j] = i]));
+                                 where emptywells_controls_compounds_indices_ordered[p,j] = i /\ quadrant_wells_assignment[p,j] in [1,2]]));
+constraint forall(p in 1..num_plates_lines, i in 1..len_emptywells_controls_compounds
+                  where emptywells_controls_compounds_concentrations_on_different_columns_rgt[p,i])
+                 (all_different([emptywells_controls_compounds_coordinates[p,j,2] | j in 1..num_total_wells_line
+                                 where emptywells_controls_compounds_indices_ordered[p,j] = i /\ quadrant_wells_assignment[p,j] in [3,4]]));
 
-% making sure that we don't place two or more things in a same well with a lex_alldifferent constraint substitution placed upon replicate coordinates
+
+constraint forall(p in 1..num_plates_lines, i in 1..len_emptywells_controls_compounds
+                  where not (emptywells_controls_compounds_categories[i] in not_force_optional_ctrs)
+                        /\ not emptywells_controls_compounds_concentrations_on_different_rows_top[p,i]
+                        /\ (sum(k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [1,3] /\
+                                                                   emptywells_controls_compounds_indices_ordered[p,k] = i)(1)
+                            > 0))
+                 (global_cardinality([emptywells_controls_compounds_coordinates[p,j,1] | j in 1..num_total_wells_line
+                                             where emptywells_controls_compounds_indices_ordered[p,j] = i /\ quadrant_wells_assignment[p,j] in [1,3]],
+                                     [j             | j in 1..floor(num_rows_line / 2)],
+                                     [1             | j in 1..floor(num_rows_line / 2)],
+                                     % find a way to calculate a more precise upper bound
+                                     [num_cols_line | j in 1..floor(num_rows_line / 2)]
+                                     ));
+constraint forall(p in 1..num_plates_lines, i in 1..len_emptywells_controls_compounds
+                  where not (emptywells_controls_compounds_categories[i] in not_force_optional_ctrs)
+                        /\ not emptywells_controls_compounds_concentrations_on_different_rows_btm[p,i]
+                        /\ (sum(k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [2,4] /\
+                                                                   emptywells_controls_compounds_indices_ordered[p,k] = i)(1)
+                            > 0))
+                 (global_cardinality([emptywells_controls_compounds_coordinates[p,j,1] | j in 1..num_total_wells_line
+                                             where emptywells_controls_compounds_indices_ordered[p,j] = i /\ quadrant_wells_assignment[p,j] in [2,4]],
+                                            [j             | j in floor(num_rows_line / 2) + 1..num_rows_line],
+                                            [1             | j in floor(num_rows_line / 2) + 1..num_rows_line],
+                                            % find a way to calculate a more precise upper bound
+                                            [num_cols_line | j in floor(num_rows_line / 2) + 1..num_rows_line]
+                                            ));
+constraint forall(p in 1..num_plates_lines, i in 1..len_emptywells_controls_compounds
+                  where not (emptywells_controls_compounds_categories[i] in not_force_optional_ctrs)
+                        /\ not emptywells_controls_compounds_concentrations_on_different_columns_lft[p,i]
+                        /\ (sum(k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [1,2] /\
+                                                                   emptywells_controls_compounds_indices_ordered[p,k] = i)(1)
+                            > 0))
+                 (global_cardinality([emptywells_controls_compounds_coordinates[p,j,2] | j in 1..num_total_wells_line
+                                             where emptywells_controls_compounds_indices_ordered[p,j] = i /\ quadrant_wells_assignment[p,j] in [1,2]],
+                                            [j             | j in 1..ceil(num_cols_line / 2)],
+                                            [1             | j in 1..ceil(num_cols_line / 2)],
+                                            % find a way to calculate a more precise upper bound
+                                            [num_rows_line | j in 1..ceil(num_cols_line / 2)]
+                                            ));
+constraint forall(p in 1..num_plates_lines, i in 1..len_emptywells_controls_compounds
+                  where not (emptywells_controls_compounds_categories[i] in not_force_optional_ctrs)
+                        /\ not emptywells_controls_compounds_concentrations_on_different_columns_rgt[p,i]
+                        /\ (sum(k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [3,4] /\
+                                                                   emptywells_controls_compounds_indices_ordered[p,k] = i)(1)
+                            > 0))
+                 (global_cardinality([emptywells_controls_compounds_coordinates[p,j,2] | j in 1..num_total_wells_line
+                                             where emptywells_controls_compounds_indices_ordered[p,j] = i /\ quadrant_wells_assignment[p,j] in [3,4]],
+                                            [j             | j in ceil(num_cols_line / 2) + 1..num_cols_line],
+                                            [1             | j in ceil(num_cols_line / 2) + 1..num_cols_line],
+                                            % find a way to calculate a more precise upper bound
+                                            [num_rows_line | j in ceil(num_cols_line / 2) + 1..num_cols_line]
+                                            ));
+
+% Optional ctrs: apply all_different/gcc constraints when concentrations_on_different_rows and/or concentrations_on_different_columns ACROSS all plates
+constraint forall(i in 1..len_emptywells_controls_compounds
+                  where emptywells_controls_compounds_concentrations_on_different_rows_all_plates_top[i])
+                 (all_different([emptywells_controls_compounds_coordinates[p,j,1] | p in 1..num_plates_lines, j in 1..num_total_wells_line
+                                 where emptywells_controls_compounds_indices_ordered[p,j] = i /\ quadrant_wells_assignment[p,j] in [1,3]]));
+constraint forall(i in 1..len_emptywells_controls_compounds
+                  where emptywells_controls_compounds_concentrations_on_different_rows_all_plates_btm[i])
+                 (all_different([emptywells_controls_compounds_coordinates[p,j,1] | p in 1..num_plates_lines, j in 1..num_total_wells_line
+                                 where emptywells_controls_compounds_indices_ordered[p,j] = i /\ quadrant_wells_assignment[p,j] in [2,4]]));
+constraint forall(i in 1..len_emptywells_controls_compounds
+                  where emptywells_controls_compounds_concentrations_on_different_columns_all_plates_lft[i])
+                 (all_different([emptywells_controls_compounds_coordinates[p,j,2] | p in 1..num_plates_lines, j in 1..num_total_wells_line
+                                 where emptywells_controls_compounds_indices_ordered[p,j] = i /\ quadrant_wells_assignment[p,j] in [1,2]]));
+constraint forall(i in 1..len_emptywells_controls_compounds
+                  where emptywells_controls_compounds_concentrations_on_different_columns_all_plates_rgt[i])
+                 (all_different([emptywells_controls_compounds_coordinates[p,j,2] | p in 1..num_plates_lines, j in 1..num_total_wells_line
+                                 where emptywells_controls_compounds_indices_ordered[p,j] = i /\ quadrant_wells_assignment[p,j] in [3,4]]));
+
+constraint forall(i in 1..len_emptywells_controls_compounds
+                  where not (emptywells_controls_compounds_categories[i] in not_force_optional_ctrs)
+                        /\ not emptywells_controls_compounds_concentrations_on_different_rows_all_plates_top[i]
+                        /\ (sum(p in 1..num_plates_lines, k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [1,3] /\
+                                                                                             emptywells_controls_compounds_indices_ordered[p,k] = i)(1)
+                            > 0))
+                 (global_cardinality([emptywells_controls_compounds_coordinates[p,j,1] | p in 1..num_plates_lines, j in 1..num_total_wells_line
+                                             where emptywells_controls_compounds_indices_ordered[p,j] = i /\ quadrant_wells_assignment[p,j] in [1,3]],
+                                     [j             | j in 1..floor(num_rows_line / 2)],
+                                     [1             | j in 1..floor(num_rows_line / 2)],
+                                     % find a way to calculate a more precise upper bound
+                                     [num_cols_line | j in 1..floor(num_rows_line / 2)]
+                                     ));
+constraint forall(i in 1..len_emptywells_controls_compounds
+                  where not (emptywells_controls_compounds_categories[i] in not_force_optional_ctrs)
+                        /\ not emptywells_controls_compounds_concentrations_on_different_rows_all_plates_btm[i]
+                        /\ (sum(p in 1..num_plates_lines, k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [2,4] /\
+                                                                                             emptywells_controls_compounds_indices_ordered[p,k] = i)(1)
+                            > 0))
+                 (global_cardinality([emptywells_controls_compounds_coordinates[p,j,1] | p in 1..num_plates_lines, j in 1..num_total_wells_line
+                                             where emptywells_controls_compounds_indices_ordered[p,j] = i /\ quadrant_wells_assignment[p,j] in [2,4]],
+                                            [j             | j in floor(num_rows_line / 2) + 1..num_rows_line],
+                                            [1             | j in floor(num_rows_line / 2) + 1..num_rows_line],
+                                            % find a way to calculate a more precise upper bound
+                                            [num_cols_line | j in floor(num_rows_line / 2) + 1..num_rows_line]
+                                            ));
+constraint forall(i in 1..len_emptywells_controls_compounds
+                  where not (emptywells_controls_compounds_categories[i] in not_force_optional_ctrs)
+                        /\ not emptywells_controls_compounds_concentrations_on_different_columns_all_plates_lft[i]
+                        /\ (sum(p in 1..num_plates_lines, k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [1,2] /\
+                                                                                             emptywells_controls_compounds_indices_ordered[p,k] = i)(1)
+                            > 0))
+                 (global_cardinality([emptywells_controls_compounds_coordinates[p,j,2] | p in 1..num_plates_lines, j in 1..num_total_wells_line
+                                             where emptywells_controls_compounds_indices_ordered[p,j] = i /\ quadrant_wells_assignment[p,j] in [1,2]],
+                                            [j             | j in 1..ceil(num_cols_line / 2)],
+                                            [1             | j in 1..ceil(num_cols_line / 2)],
+                                            % find a way to calculate a more precise upper bound
+                                            [num_rows_line | j in 1..ceil(num_cols_line / 2)]
+                                            ));
+constraint forall(i in 1..len_emptywells_controls_compounds
+                  where not (emptywells_controls_compounds_categories[i] in not_force_optional_ctrs)
+                        /\ not emptywells_controls_compounds_concentrations_on_different_columns_all_plates_rgt[i]
+                        /\ (sum(p in 1..num_plates_lines, k in 1..num_total_wells_line where quadrant_wells_assignment[p,k] in [3,4] /\
+                                                                                             emptywells_controls_compounds_indices_ordered[p,k] = i)(1)
+                            > 0))
+                 (global_cardinality([emptywells_controls_compounds_coordinates[p,j,2] | p in 1..num_plates_lines, j in 1..num_total_wells_line
+                                             where emptywells_controls_compounds_indices_ordered[p,j] = i /\ quadrant_wells_assignment[p,j] in [3,4]],
+                                            [j             | j in ceil(num_cols_line / 2) + 1..num_cols_line],
+                                            [1             | j in ceil(num_cols_line / 2) + 1..num_cols_line],
+                                            % find a way to calculate a more precise upper bound
+                                            [num_rows_line | j in ceil(num_cols_line / 2) + 1..num_cols_line]
+                                            ));
+
+
+% making sure that we don't place two or more materials in a same well with a lex_alldifferent constraint substitution placed upon replicate coordinates
 constraint forall(p in 1..num_plates_lines, i in 1..num_total_wells_line)
                  (wells_line_lex_all_different_substitute[p,i] = 
                   (emptywells_controls_compounds_coordinates[p,i,1] - 1) * num_cols_line
@@ -812,6 +1017,7 @@ constraint forall(p in 1..num_plates_lines, q in 1..4)
                                                                            % exlude empty wells if not a part of the criteria
                                                                           /\ (emptywells_controls_compounds_indices_ordered[p,i] = 1 ->
                                                                               use_min_dist_criteria[p,emptywells_controls_compounds_criteria_ordered[p,i]])]));
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % CALCULATING THE OPTIMIZATION CRITERIA - distance matrix, minimum distances within sets
@@ -868,8 +1074,6 @@ constraint forall(j in 1..len_min_dist_criteria)
                                                                distances_edges_controls_compounds_sets_match[j]])
                                   )
                  );
-
-% emptywells_controls_compounds_criteria_sets_categories[p,j] = "ctrs"
 
 var 1..max(2, num_rows_line + num_cols_line - 2): min_distance;
 var 1..max(2, num_rows_line + num_cols_line - 2): min_distance_ctrs;
@@ -942,21 +1146,21 @@ output [if debugging then show([num_total_wells_line] ++ [sum(i in 1..len_emptyw
               | p in 1..num_plates_lines]) else "" endif];
 output [if debugging then "\n\n" else "" endif];
 
-output [if debugging then "emptywells_controls_compounds_concentrations_on_different_rows =\n" else "" endif];
-output [if debugging then show2d(emptywells_controls_compounds_concentrations_on_different_rows) else "" endif];
-output [if debugging then "\n\n" else "" endif];
+%output [if debugging then "emptywells_controls_compounds_concentrations_on_different_rows =\n" else "" endif];
+%output [if debugging then show2d(emptywells_controls_compounds_concentrations_on_different_rows) else "" endif];
+%output [if debugging then "\n\n" else "" endif];
 
-output [if debugging then "emptywells_controls_compounds_concentrations_on_different_columns =\n" else "" endif];
-output [if debugging then show2d(emptywells_controls_compounds_concentrations_on_different_columns) else "" endif];
-output [if debugging then "\n\n" else "" endif];
+%output [if debugging then "emptywells_controls_compounds_concentrations_on_different_columns =\n" else "" endif];
+%output [if debugging then show2d(emptywells_controls_compounds_concentrations_on_different_columns) else "" endif];
+%output [if debugging then "\n\n" else "" endif];
 
-output [if debugging then "emptywells_controls_compounds_concentrations_on_different_rows_all_plates =\n" else "" endif];
-output [if debugging then show(emptywells_controls_compounds_concentrations_on_different_rows_all_plates) else "" endif];
-output [if debugging then "\n\n" else "" endif];
+%output [if debugging then "emptywells_controls_compounds_concentrations_on_different_rows_all_plates =\n" else "" endif];
+%output [if debugging then show(emptywells_controls_compounds_concentrations_on_different_rows_all_plates) else "" endif];
+%output [if debugging then "\n\n" else "" endif];
 
-output [if debugging then "emptywells_controls_compounds_concentrations_on_different_columns_all_plates =\n" else "" endif];
-output [if debugging then show(emptywells_controls_compounds_concentrations_on_different_columns_all_plates) else "" endif];
-output [if debugging then "\n\n" else "" endif];
+%output [if debugging then "emptywells_controls_compounds_concentrations_on_different_columns_all_plates =\n" else "" endif];
+%output [if debugging then show(emptywells_controls_compounds_concentrations_on_different_columns_all_plates) else "" endif];
+%output [if debugging then "\n\n" else "" endif];
 
 output [if debugging then "num_criteria_set_line =\n" else "" endif];
 output [if debugging then show2d(num_criteria_set_line) else "" endif];
