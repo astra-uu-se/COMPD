@@ -6,18 +6,20 @@ Note: The changes reference equations and sections from the article
 ## Version 1.2 (Sept 24 2025)
 
 Optional constraints reworked to be more nuanced/consistent:
-	- if a half (top/bottom/right/left) has fewer or an equal number of wells than its number of rows/columns, then all_different is applied (same as before),
-	- if a half (top/bottom/right/left) has a greater number of wells than its number of rows/columns, then the global cardinality constraint (gcc) is applied to ensure that there is at least one well per row/column in this half.
+
+- if a half (top/bottom/right/left) has fewer or an equal number of wells than its number of rows/columns, then all_different is applied (same as before),
+- if a half (top/bottom/right/left) has a greater number of wells than its number of rows/columns, then the global cardinality constraint (gcc) is applied to ensure that there is at least one well per row/column in this half.
 
 Thus, we'll first split existing flags emptywells_controls_compounds_concentrations_on_different_* (which correspond) into:
-	- emptywells_controls_compounds_concentrations_on_different_rows_top     (top, all_different)
-	- emptywells_controls_compounds_concentrations_on_different_rows_top_gcc (top, gcc)
-	- emptywells_controls_compounds_concentrations_on_different_rows_btm     (bottom, all_different)
-	- emptywells_controls_compounds_concentrations_on_different_rows_btm_gcc (bottom, gcc)
-	- emptywells_controls_compounds_concentrations_on_different_columns_lft     (left, all_different)
-	- emptywells_controls_compounds_concentrations_on_different_columns_lft_gcc (left, gcc)
-	- emptywells_controls_compounds_concentrations_on_different_columns_rgt     (right, all_different)
-	- emptywells_controls_compounds_concentrations_on_different_columns_rgt_gcc (right, gcc)
+
+- emptywells_controls_compounds_concentrations_on_different_rows_top     (top, all_different)
+- emptywells_controls_compounds_concentrations_on_different_rows_top_gcc (top, gcc)
+- emptywells_controls_compounds_concentrations_on_different_rows_btm     (bottom, all_different)
+- emptywells_controls_compounds_concentrations_on_different_rows_btm_gcc (bottom, gcc)
+- emptywells_controls_compounds_concentrations_on_different_columns_lft     (left, all_different)
+- emptywells_controls_compounds_concentrations_on_different_columns_lft_gcc (left, gcc)
+- emptywells_controls_compounds_concentrations_on_different_columns_rgt     (right, all_different)
+- emptywells_controls_compounds_concentrations_on_different_columns_rgt_gcc (right, gcc)
 
 Same with flags emptywells_controls_compounds_concentrations_on_different_*_all_plates
 
