@@ -24,9 +24,10 @@ Thus, we'll first split existing flags emptywells_controls_compounds_concentrati
 Same with flags emptywells_controls_compounds_concentrations_on_different_*_all_plates
 
 This behaviour should:
-	- reduce the number of situations when the model is unsatisfiable due to optional constraints
-	- ensure that every row/column is covered if there are too many wells with the criteria set (previously, it was not enforced)
-	- the previous point, potentially, can lead to increased performance as the number of potential well placements is reduced (this point must be tested)
+
+- reduce the number of situations when the model is unsatisfiable due to optional constraints
+- ensure that every row/column is covered if there are too many wells with the criteria set (previously, it was not enforced)
+- the previous point, potentially, can lead to increased performance as the number of potential well placements is reduced (this point must be tested)
 
 These changes basically replace Equations 7-11.
 
