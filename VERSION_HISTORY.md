@@ -2,6 +2,11 @@
 
 Note: The changes reference equations and sections from the article
 
+## Version 1.21 (Sept 25 2025)
+
+Minor fixes:
+- added a warning when the number of wells per line is =< 0
+- a couple of counting tensors were renamed (removed `min_dist` from the name as these tensors are not used during the calculation of the minimal distances)
 
 ## Version 1.2 (Sept 24 2025)
 
