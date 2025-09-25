@@ -140,6 +140,7 @@ int: num_forced_empty_wells_quadrant = num_corner_empty_wells * num_corner_empty
 int: num_forced_empty_wells_total = 4 * num_forced_empty_wells_quadrant;
 
 int: num_total_wells_line = num_rows_line * num_cols_line - num_forced_empty_wells_total;
+constraint assert(num_total_wells_line > 1, "Model ERROR! Number of wells within a plate line is \(num_total_wells_line) < 1. This should never happen!"); % VALIDATION
 
 %% Number of wells needed. Note that plates might not be full
 int: num_total_wells = sum([compound_concentrations[i]*compound_replicates[i] | i in 1..compounds]) + total_controls; 
@@ -848,10 +849,10 @@ array[1..num_plates_lines, 1..num_criteria_sets] of int: min_dist_criteria_count
                                          | p in 1..num_plates_lines, i in 1..num_criteria_sets]);
 
 % Counting tensors - count number of elements per plate, quadrant, criteria set / concentration
-% They are used for symmetry breaking constraints
+% Some are used for symmetry breaking constraints and some for the calculation of the distance criteria
 % TODO: check if I can just tie their conditions from flags emptywells_controls_compounds_concentrations_on_different_*
 %       to simply input flags concentrations_on_different_*
-array[1..num_plates_lines, 1..4, 1..num_criteria_sets] of int: min_dist_quadrant_criteria_counts =
+array[1..num_plates_lines, 1..4, 1..num_criteria_sets] of int: quadrant_criteria_counts =
     array3d(1..num_plates_lines, 1..4, 1..num_criteria_sets,
             [ sum([1 | k in 1..num_total_wells_line where emptywells_controls_compounds_criteria_ordered[p,k] = j
                                                           /\ quadrant_wells_assignment[p,k] = i /\
@@ -866,7 +867,7 @@ array[1..num_plates_lines, 1..4, 1..num_criteria_sets] of int: min_dist_quadrant
                                                          (i in [3,4] -> not emptywells_controls_compounds_concentrations_on_different_columns_rgt_gcc[p,j])
                    ])
              | p in 1..num_plates_lines, i in 1..4, j in 1..num_criteria_sets]);
-array[1..num_plates_lines, 1..4, 1..len_emptywells_controls_compounds] of int: min_dist_quadrant_on_different_rows_columns =
+array[1..num_plates_lines, 1..4, 1..len_emptywells_controls_compounds] of int: quadrant_on_different_rows_columns =
     array3d(1..num_plates_lines, 1..4, 1..len_emptywells_controls_compounds,
             [ sum([1 | k in 1..num_total_wells_line where emptywells_controls_compounds_indices_ordered[p,k] = j
                                                           /\ quadrant_wells_assignment[p,k] = i /\
@@ -970,7 +971,7 @@ constraint if num_corner_empty_wells = 0 then true
 
 % a symmetry breaking ctr - with the caveat that it isn't the best one I can think of. It has a drawback (somewhat grouping one type of concentrations together, in some cases, - it is fine for now, but later I must think on how to restructure it
 constraint forall(p in 1..num_plates_lines, i in 1..4, j in 1..num_criteria_sets where (j = 1 -> use_min_dist_criteria[p,j]))
-           (lex_chain_greater(array2d(1..2, 1..min_dist_quadrant_criteria_counts[p,i,j],
+           (lex_chain_greater(array2d(1..2, 1..quadrant_criteria_counts[p,i,j],
                                       [emptywells_controls_compounds_coordinates[p,k,l] | l in 1..2, k in 1..num_total_wells_line
                                        where emptywells_controls_compounds_criteria_ordered[p,k] = j
                                              /\ quadrant_wells_assignment[p,k] = i /\
@@ -987,7 +988,7 @@ constraint forall(p in 1..num_plates_lines, i in 1..4, j in 1..num_criteria_sets
 
 % symmetry breaking ctr - applied if concentrations_on_different_rows or concentrations_on_different_columns
 constraint forall(p in 1..num_plates_lines, i in 1..4, j in 1..len_emptywells_controls_compounds)
-           (lex_chain_greater(array2d(1..2, 1..min_dist_quadrant_on_different_rows_columns[p,i,j],
+           (lex_chain_greater(array2d(1..2, 1..quadrant_on_different_rows_columns[p,i,j],
                                       [emptywells_controls_compounds_coordinates[p,k,l] | l in 1..2, k in 1..num_total_wells_line
                                        where emptywells_controls_compounds_indices_ordered[p,k] = j
                                              /\ quadrant_wells_assignment[p,k] = i /\
@@ -1363,12 +1364,12 @@ output [if debugging then "min_dist_criteria_counts_ends =\n" else "" endif];
 output [if debugging then show2d(min_dist_criteria_counts_ends) else "" endif];
 output [if debugging then "\n\n" else "" endif];
 
-output [if debugging then "min_dist_quadrant_criteria_counts =\n" else "" endif];
-output [if debugging then show3d(min_dist_quadrant_criteria_counts) else "" endif];
+output [if debugging then "quadrant_criteria_counts =\n" else "" endif];
+output [if debugging then show3d(quadrant_criteria_counts) else "" endif];
 output [if debugging then "\n\n" else "" endif];
 
-output [if debugging then "min_dist_quadrant_on_different_rows_columns =\n" else "" endif];
-output [if debugging then show3d(min_dist_quadrant_on_different_rows_columns) else "" endif];
+output [if debugging then "quadrant_on_different_rows_columns =\n" else "" endif];
+output [if debugging then show3d(quadrant_on_different_rows_columns) else "" endif];
 output [if debugging then "\n\n" else "" endif];
 
 output [if debugging then "distances_edges_controls_compounds_plates_match =\n" else "" endif];
