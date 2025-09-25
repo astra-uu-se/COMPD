@@ -29,7 +29,7 @@ This behaviour should:
 - ensure that every row/column is covered if there are too many wells with the criteria set (previously, it was not enforced)
 - the previous point, potentially, can lead to increased performance as the number of potential well placements is reduced (this point must be tested)
 
-These changes basically replace Equations 7-11.
+These changes replace Equations 7-11 with a more sophisticated set of constraints. They also slightly update Equations 12 and 13
 
 Note: the resulting behaviour still depends on the placement of wells between the quadrants. Thus, if the division of wells is unbalanced, then some rows/columns in one half could be empty, while the other half would have 2+ wells per row/column.
 
