@@ -2,6 +2,13 @@
 
 Note: The changes reference equations and sections from the article
 
+## Version 1.22 (Oct 2 2025)
+
+Minor fixes:
+- fixing an upper limit for gcc optional constraint when applied on multiple plates
+- if number of rows/columns is equal to 1, then set the respective flags for optional constraints to `false`
+- A few lines of text are aligned in a more consistent manner
+
 ## Version 1.21 (Sept 25 2025)
 
 Minor fixes:
