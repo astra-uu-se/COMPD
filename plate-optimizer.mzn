@@ -526,7 +526,9 @@ array[1..num_plates_lines, 1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_rows_top =
        array2d(1..num_plates_lines, 1..len_emptywells_controls_compounds,
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+               [if num_rows_line == 1
+			  then false
+			elseif emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_rows
@@ -542,7 +544,9 @@ array[1..num_plates_lines, 1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_rows_btm =
        array2d(1..num_plates_lines, 1..len_emptywells_controls_compounds,
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+               [if num_rows_line == 1
+			  then false
+			elseif emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_rows
@@ -558,7 +562,9 @@ array[1..num_plates_lines, 1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_columns_lft =
        array2d(1..num_plates_lines, 1..len_emptywells_controls_compounds,
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+               [if num_cols_line == 1
+			  then false
+			elseif emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_columns
@@ -574,7 +580,9 @@ array[1..num_plates_lines, 1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_columns_rgt =
        array2d(1..num_plates_lines, 1..len_emptywells_controls_compounds,
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+               [if num_cols_line == 1
+			  then false
+			elseif emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_columns
@@ -591,7 +599,9 @@ array[1..num_plates_lines, 1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_rows_top_gcc =
        array2d(1..num_plates_lines, 1..len_emptywells_controls_compounds,
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+               [if num_rows_line == 1
+			  then false
+			elseif emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_rows
@@ -605,7 +615,9 @@ array[1..num_plates_lines, 1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_rows_btm_gcc =
        array2d(1..num_plates_lines, 1..len_emptywells_controls_compounds,
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+               [if num_rows_line == 1
+			  then false
+			elseif emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_rows
@@ -619,7 +631,9 @@ array[1..num_plates_lines, 1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_columns_lft_gcc =
        array2d(1..num_plates_lines, 1..len_emptywells_controls_compounds,
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+               [if num_cols_line == 1
+			  then false
+			elseif emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_columns
@@ -633,7 +647,9 @@ array[1..num_plates_lines, 1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_columns_rgt_gcc =
        array2d(1..num_plates_lines, 1..len_emptywells_controls_compounds,
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+               [if num_cols_line == 1
+			  then false
+			elseif emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_columns
@@ -648,7 +664,9 @@ array[1..num_plates_lines, 1..len_emptywells_controls_compounds] of bool:
 array[1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_rows_all_plates_top =
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+               [if num_rows_line == 1
+			  then false
+			elseif emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_rows
@@ -663,7 +681,9 @@ array[1..len_emptywells_controls_compounds] of bool:
 array[1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_rows_all_plates_btm =
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+               [if num_rows_line == 1
+			  then false
+			elseif emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_rows
@@ -678,7 +698,9 @@ array[1..len_emptywells_controls_compounds] of bool:
 array[1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_columns_all_plates_lft =
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+               [if num_cols_line == 1
+			  then false
+			elseif emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_columns
@@ -693,7 +715,9 @@ array[1..len_emptywells_controls_compounds] of bool:
 array[1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_columns_all_plates_rgt =
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+               [if num_cols_line == 1
+			  then false
+			elseif emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_columns
@@ -709,7 +733,9 @@ array[1..len_emptywells_controls_compounds] of bool:
 array[1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_rows_all_plates_top_gcc =
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+               [if num_rows_line == 1
+			  then false
+			elseif emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_rows
@@ -722,7 +748,9 @@ array[1..len_emptywells_controls_compounds] of bool:
 array[1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_rows_all_plates_btm_gcc =
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+               [if num_rows_line == 1
+			  then false
+			elseif emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_rows
@@ -735,7 +763,9 @@ array[1..len_emptywells_controls_compounds] of bool:
 array[1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_columns_all_plates_lft_gcc =
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+               [if num_cols_line == 1
+			  then false
+			elseif emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_columns
@@ -748,7 +778,9 @@ array[1..len_emptywells_controls_compounds] of bool:
 array[1..len_emptywells_controls_compounds] of bool:
       emptywells_controls_compounds_concentrations_on_different_columns_all_plates_rgt_gcc =
                  % no matter the flags, empty wells and controls are exempt from the treatment
-               [if emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
+               [if num_cols_line == 1
+			  then false
+			elseif emptywells_controls_compounds_categories[i] in not_force_optional_ctrs
               then false
                 % if the input flag is false we use the default behaviour
             elseif not concentrations_on_different_columns
@@ -790,10 +822,10 @@ array[1..num_plates_lines, 1..num_criteria_sets] of bool: use_fake_edge_wells =
 int: num_edges = 16;
 % Fake edges are always generated
 array[1..num_edges,1..2] of int: edges = array2d(1..num_edges,1..2,
-                                                 [0,                 0,
-                                                  num_rows_line + 1, 0,
-                                                  0,                 num_cols_line + 1,
-                                                  num_rows_line + 1, num_cols_line + 1,
+                                                 [0,                            0,
+                                                  num_rows_line + 1,            0,
+                                                  0,                            num_cols_line + 1,
+                                                  num_rows_line + 1,            num_cols_line + 1,
                                                   
 												  num_rows_line + 2,            floor(1 * num_cols_line / 4),
                                                   num_rows_line + 2,            floor(2 * num_cols_line / 4),
@@ -1091,7 +1123,7 @@ constraint forall(i in 1..len_emptywells_controls_compounds
                                      [j             | j in 1..floor(num_rows_line / 2)],
                                      [1             | j in 1..floor(num_rows_line / 2)],
                                      % find a way to calculate a more precise upper bound
-                                     [num_cols_line | j in 1..floor(num_rows_line / 2)]
+                                     [num_cols_line * num_plates_lines | j in 1..floor(num_rows_line / 2)]
                                      ));
 constraint forall(i in 1..len_emptywells_controls_compounds
                   where emptywells_controls_compounds_concentrations_on_different_rows_all_plates_btm_gcc[i])
@@ -1100,7 +1132,7 @@ constraint forall(i in 1..len_emptywells_controls_compounds
                                             [j             | j in floor(num_rows_line / 2) + 1..num_rows_line],
                                             [1             | j in floor(num_rows_line / 2) + 1..num_rows_line],
                                             % find a way to calculate a more precise upper bound
-                                            [num_cols_line | j in floor(num_rows_line / 2) + 1..num_rows_line]
+                                            [num_cols_line * num_plates_lines | j in floor(num_rows_line / 2) + 1..num_rows_line]
                                             ));
 constraint forall(i in 1..len_emptywells_controls_compounds
                   where emptywells_controls_compounds_concentrations_on_different_columns_all_plates_lft_gcc[i])
@@ -1109,7 +1141,7 @@ constraint forall(i in 1..len_emptywells_controls_compounds
                                             [j             | j in 1..ceil(num_cols_line / 2)],
                                             [1             | j in 1..ceil(num_cols_line / 2)],
                                             % find a way to calculate a more precise upper bound
-                                            [num_rows_line | j in 1..ceil(num_cols_line / 2)]
+                                            [num_rows_line * num_plates_lines | j in 1..ceil(num_cols_line / 2)]
                                             ));
 constraint forall(i in 1..len_emptywells_controls_compounds
                   where emptywells_controls_compounds_concentrations_on_different_columns_all_plates_rgt_gcc[i])
@@ -1118,7 +1150,7 @@ constraint forall(i in 1..len_emptywells_controls_compounds
                                             [j             | j in ceil(num_cols_line / 2) + 1..num_cols_line],
                                             [1             | j in ceil(num_cols_line / 2) + 1..num_cols_line],
                                             % find a way to calculate a more precise upper bound
-                                            [num_rows_line | j in ceil(num_cols_line / 2) + 1..num_cols_line]
+                                            [num_rows_line * num_plates_lines | j in ceil(num_cols_line / 2) + 1..num_cols_line]
                                             ));
 
 
