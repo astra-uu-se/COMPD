@@ -2,11 +2,17 @@
 
 Note: The changes reference equations and sections from the article
 
+## Version 1.23 (Oct 2 2025)
+
+Minor fixes:
+- `min_dist_edges` is now guaranteed to be a positive integer
+- generalized the previous fix, where instead of checking the number of rows/columns, it takes an already existing flag `use_quadrant_distribution`
+
 ## Version 1.22 (Oct 2 2025)
 
 Minor fixes:
 - fixing an upper limit for gcc optional constraint when applied on multiple plates
-- if number of rows/columns is equal to 1, then set the respective flags for optional constraints to `false`
+- if the number of rows/columns is equal to 1, then set the respective flags for optional constraints to `false`
 - A few lines of text are aligned in a more consistent manner
 
 ## Version 1.21 (Sept 25 2025)
