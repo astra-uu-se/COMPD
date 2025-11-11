@@ -16,8 +16,9 @@ The full explanation can be found in the paper "Constraint Optimization of Micro
 
 To test, you can use the `*.dzn` files from `evaluation/regression-tests` directory or a small example from `https://github.com/pharmbio/plaid/blob/main/small-example.dzn`
 
-To make the workflow with COMPD more fluid and intuitive, you can use [GUI-for-MiniZinc-microplates-models](https://github.com/astra-uu-se/GUI-for-MiniZinc-microplates-models).
+## GUI
 
+To make the workflow with COMPD more fluid and intuitive, you can use [MPLACE](https://github.com/astra-uu-se/MPLACE) - an external GUI utility developed in Python.
 
 ## Evaluation
 The directory `evaluation` contains instructions on how to execute the evaluation section of the paper. Note that we use version 1.0 in the evaluation (as it was updated since the article submission). Version 1.0 is available [here](https://github.com/astra-uu-se/COMPD/blob/main/evaluation_aaai26/compd-files/plate-optimizer-model.mzn).
