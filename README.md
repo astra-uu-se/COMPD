@@ -20,7 +20,7 @@ To make the workflow with COMPD more fluid and intuitive, you can use [GUI-for-M
 
 
 ## Evaluation
-The directory `evaluation` contains instructions on how to execute the evaluation section of the paper. Note that we use [version 1.0](https://github.com/astra-uu-se/COMPD/blob/main/evaluation_aaai26/compd-files/plate-optimizer-model.mzn) in the evaluation (as it was updated since).
+The directory `evaluation` contains instructions on how to execute the evaluation section of the paper. Note that we use version 1.0 in the evaluation (as it was updated since the article submission). Version 1.0 is available [here](https://github.com/astra-uu-se/COMPD/blob/main/evaluation_aaai26/compd-files/plate-optimizer-model.mzn).
 
 ## Version history
 
