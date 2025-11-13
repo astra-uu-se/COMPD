@@ -2,6 +2,12 @@
 
 Note: The changes reference equations and sections from the article
 
+## Version 1.24 (Nov 13 2025)
+
+- minor refactoring: rewrote some of the conditions for the optional constraints to be more concise and direct, without changing their structure or behavior
+- Added a couple of commentaries
+
+
 ## Version 1.23 (Oct 2 2025)
 
 Minor fixes (to handle rare edge cases):
