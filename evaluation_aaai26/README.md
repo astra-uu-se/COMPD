@@ -31,7 +31,7 @@ Either:
      - `generated-plots\quality-assessment-metrics`
      - `screening-supplement`
      - `latex-tables`
-  3. Execute remaining Jupyter notebooks. Note that in the notebooks, the citation of a specific article figure is done according to the PLAID article. Consult the supplement of the AAI26 article with correct mapping to the newly generated figures.
+  3. Execute remaining Jupyter notebooks. Note that in the notebooks, the citation of a specific article figure is done according to the PLAID article. Consult `detailed experimental results.pdf` for the correct mapping to the newly generated figures.
 
 ## Step 3 - Update the supplementary materials
 
