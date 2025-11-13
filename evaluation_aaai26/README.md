@@ -35,4 +35,4 @@ Either:
 
 ## Step 3 - Update the supplementary materials
 
-We only provide the source code for the document (see `detailed-experimental-results-source` directory). Use figures from the `generated-plots` directory that match the name in the LaTeX code
+We provide the source code for the document (see `detailed-experimental-results-source` directory), in addition to the file itself. Use figures from the `generated-plots` directory that match the name in the LaTeX code
