@@ -2,26 +2,26 @@
 
 Note: The changes reference equations and sections from the article
 
-## Version 1.24 (Nov 13 2025)
+## Version 1.2.4 (Nov 13 2025)
 
 - minor refactoring: rewrote some of the conditions for the optional constraints to be more concise and direct, without changing their structure or behavior
 - Added a couple of commentaries
 
 
-## Version 1.23 (Oct 2 2025)
+## Version 1.2.3 (Oct 2 2025)
 
 Minor fixes (to handle rare edge cases):
 - `min_dist_edges` is now guaranteed to be a positive integer (otherwise it conflicted with domains of distance variables)
 - generalized the previous fix, where instead of checking the number of rows/columns, it takes an already existing flag `use_quadrant_distribution` (for simplicity)
 
-## Version 1.22 (Oct 2 2025)
+## Version 1.2.2 (Oct 2 2025)
 
 Minor fixes (to handle rare edge cases):
 - fixing an upper limit for GCC optional constraint when applied on multiple plates (otherwise it can be too restrictive)
 - if the number of rows/columns is equal to 1, then set the respective flags for optional constraints to `false` (to not put unnecessary constraints in this situation)
 - A few lines of text are aligned in a more consistent manner
 
-## Version 1.21 (Sept 25 2025)
+## Version 1.2.1 (Sept 25 2025)
 
 Minor fixes:
 - added a warning when the number of wells per line is =< 0 (otherwise the model stopped without explanation)
