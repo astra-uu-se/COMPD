@@ -2,6 +2,10 @@
 
 Note: The listed changes reference equations and sections from the article
 
+## Version 1.2.6 (Nov 13 2025)
+- further minor refactoring to slightly reduce the number of lines (not that much) and make the code slightly more readable (introducing functions well_excluded_by_optional_constraints and well_included_by_optional_constraints)
+- fixed a cosmetic bug introduced in 1.2.5 when some debugging information was printed despite the debugging flag being false
+
 ## Version 1.2.5 (Nov 13 2025)
 - further minor refactoring to slightly reduce the number of lines (not that much) and make the code slightly more readable
 
