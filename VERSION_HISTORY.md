@@ -1,6 +1,9 @@
 # Version history
 
-Note: The changes reference equations and sections from the article
+Note: The listed changes reference equations and sections from the article
+
+## Version 1.2.5 (Nov 13 2025)
+- further minor refactoring to slightly reduce the number of lines (not that much) and make the code slightly more readable
 
 ## Version 1.2.4 (Nov 13 2025)
 
