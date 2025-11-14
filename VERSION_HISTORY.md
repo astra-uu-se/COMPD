@@ -2,6 +2,9 @@
 
 Note: The listed changes reference equations and sections from the article
 
+## Version 1.2.9 (Nov 14 2025)
+- refactoring: applying the same approach of helper functions introduced in 1.2.8 to the domain and all optional constraints. Benefits - readability and encapsulated logic. Significantly reduced number of lines
+
 ## Version 1.2.8 (Nov 14 2025)
 - minor refactoring: introduced three helper functions to encapsulate common logic for calculating arrays emptywells_controls_compounds_concentrations_on_different_* (reduction by ~60 lines)
 
