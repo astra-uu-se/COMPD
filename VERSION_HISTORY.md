@@ -2,6 +2,9 @@
 
 Note: The listed changes reference equations and sections from the article
 
+## Version 1.2.8 (Nov 14 2025)
+- minor refactoring: introduced three helper functions to encapsulate common logic for calculating arrays emptywells_controls_compounds_concentrations_on_different_* (reduction by ~60 lines)
+
 ## Version 1.2.7 (Nov 14 2025)
 - further minor refactoring to slightly reduce the number of lines (not that much) and make the code slightly more readable (removing well_included_by_optional_constraints since it's possible to simply use negation of well_excluded_by_optional_constraints)
 - fixed an old bug that was present since 1.0: constraint that iterated over materials and used well_excluded_by_optional_constraints (or its equivalent in 1.0), was incorrectly passing a criteria set index instead of a material index. In most cases, it did not produce a serious violation of optional constraints, but it was still an error in logic which the model was supposed to obey.
