@@ -16,7 +16,7 @@
 % Description:  A microplate layout designer represented as an optimization problem
 %
 % Authors: Ramiz GINDULLIN (ramiz.gindullin@it.uu.se)
-% Version: 1.2.10
+% Version: 1.2.9
 % Last Revision: November 2025
 %
 
