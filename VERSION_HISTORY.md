@@ -2,6 +2,9 @@
 
 Note: The listed changes reference equations and sections from the article
 
+## Version 1.3.0 (Nov 20 2025)
+- updated the constraint model. I replaced the constraints in equation (15) of the original article with. Instead of using criteria-set-minimal-distance-variable = min(the-list-of-distances-in-the-criteria-set), COMPD now uses a set of constraints criteria-set-minimal-distance-variable =< distance-in-the-criteria-set for each distance. It reduces the memory consumption by ~5-10% and, in some cases and solvers, slightly reduces the solution time
+
 ## Version 1.2.9 (Nov 14 2025)
 - refactoring: applying the same approach of helper functions introduced in 1.2.8 to the domain and all optional constraints. Benefits - readability and encapsulated logic. Significantly reduced number of lines
 
