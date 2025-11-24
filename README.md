@@ -21,7 +21,7 @@ To test, you can use the `*.dzn` files from `evaluation/regression-tests` direct
 To make the workflow with COMPD more fluid and intuitive, you can use [MPLACE](https://github.com/astra-uu-se/MPLACE) - an external GUI utility developed in Python.
 
 ## Evaluation
-The directory `evaluation` contains instructions on how to execute the evaluation section of the paper. Note that we use version 1.0 in the evaluation (as it was updated since the article submission). Version 1.0 is available [here](https://github.com/astra-uu-se/COMPD/blob/main/evaluation_aaai26/compd-files/plate-optimizer-model.mzn).
+The directory `evaluation` contains instructions on how to execute the evaluation section of the paper. Note that we use version 1.0 in the evaluation (as it was updated since the article submission). Version 1.0 is available [here](https://github.com/astra-uu-se/COMPD/blob/main/evaluation_aaai26/compd-files/plate-optimizer.mzn).
 
 ## Version history
 
