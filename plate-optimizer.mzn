@@ -426,6 +426,36 @@ array[1..num_plates_lines, 1..num_total_wells_line] of int: emptywells_controls_
                    [emptywells_controls_compounds_criteria_sets_transformed[p,emptywells_controls_compounds_indices_ordered[p,i]]
                     | p in 1..num_plates_lines, i in 1..num_total_wells_line]);
 
+% For quadrant distribution we use Deterministic round-robin allocation followed by sequential bin packing
+% Imagine we have 5x5 grid. We have 4 materials (we call them 1, 2, 3 and 4, for simplicity) with quantities 10, 6, 4 and 5,
+% that we will assign between 4 quadrants (I-IV). Since it's there are odd numbers of rows and columns,
+% Q-I will take 9 replicates, Q-II and Q-III - 6 replicates each and Q-IV - 4 replicates.
+% 
+% So, what I do is to first list all the replicates in order:
+% 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 3 3 3 3 4 4 4 4 4
+% 
+% I match them with mod 4 counts (to make them distinct I use i-iv):
+% 
+% 1  1   1  1 1  1   1  1 1  1   2  2 2  2   2  2 3  3   3  3 4  4   4  4 4
+% i ii iii iv i ii iii iv i ii iii iv i ii iii iv i ii iii iv i ii iii iv i
+% 
+% I then list all the replicates associated with i, then with ii, iii and iv:
+% 
+% 1 1 1 2 3 4 4  1  1  1  2  3  4   1   1   2   2   3   4  1  1  2  2  3  4
+% i i i i i i i ii ii ii ii ii ii iii iii iii iii iii iii iv iv iv iv iv iv
+% 
+% And lastly, I say that first 9 replicates in the list are Q-I, the next 6 - Q-II, etc:
+% 
+% 1 1 1 2 3 4 4  1  1  1  2  3  4   1   1   2   2   3   4   1   1  2  2  3  4
+% i i i i i i i ii ii ii ii ii ii iii iii iii iii iii iii  iv  iv iv iv iv iv
+% I I I I I I I  I  I II II II II  II  II III III III III III III IV IV IV IV
+% 
+% i.e:
+% Q-I   will have 5, 1, 1, 2 replicates of materials 1-4 resp.
+% Q-II  will have 3, 1, 1, 1 replicates of materials 1-4 resp.
+% Q-III will have 2, 2, 1, 1 replicates of materials 1-4 resp.
+% Q-IV  will have 0, 2, 1, 1 replicates of materials 1-4 resp.
+
 int: base_quadrant_size = num_total_wells_line div 4;
 int: remainder_wells = num_total_wells_line mod 4;
 array[1..4] of int: quadrants_distribution = [base_quadrant_size + (remainder_wells >= i) | i in 1..4];
@@ -668,23 +698,22 @@ array[1..num_edges,1..2] of int: edges = array2d(1..num_edges,1..2,
                                                   0,                            num_cols_line + 1,
                                                   num_rows_line + 1,            num_cols_line + 1,
                                                   
-												  num_rows_line + 2,            floor(1 * num_cols_line / 4),
+                                                  num_rows_line + 2,            floor(1 * num_cols_line / 4),
                                                   num_rows_line + 2,            floor(2 * num_cols_line / 4),
-												  num_rows_line + 2,            floor(3 * num_cols_line / 4),
-												  
-												  -1,                           floor(1 * num_cols_line / 4),
+                                                  num_rows_line + 2,            floor(3 * num_cols_line / 4),
+                                                  
+                                                  -1,                           floor(1 * num_cols_line / 4),
                                                   -1,                           floor(2 * num_cols_line / 4),
-												  -1,                           floor(3 * num_cols_line / 4),
-												  
-												  floor(1 * num_rows_line / 4), num_cols_line + 2,
-												  floor(2 * num_rows_line / 4), num_cols_line + 2,
-												  floor(3 * num_rows_line / 4), num_cols_line + 2,
-												  
-												  floor(1 * num_rows_line / 4), -1,
-												  floor(2 * num_rows_line / 4), -1,
-												  floor(3 * num_rows_line / 4), -1
-												  
-												  ]);
+                                                  -1,                           floor(3 * num_cols_line / 4),
+                                                  
+                                                  floor(1 * num_rows_line / 4), num_cols_line + 2,
+                                                  floor(2 * num_rows_line / 4), num_cols_line + 2,
+                                                  floor(3 * num_rows_line / 4), num_cols_line + 2,
+                                                  
+                                                  floor(1 * num_rows_line / 4), -1,
+                                                  floor(2 * num_rows_line / 4), -1,
+                                                  floor(3 * num_rows_line / 4), -1
+                                                  ]);
 int: min_dist_edges = max(1, min([num_rows_line, num_cols_line]) div 2);
                                       
 % Calculate distance matrix edges and wells
@@ -733,7 +762,7 @@ array[1..len_min_dist_criteria] of int: distances_edges_controls_compounds_sets_
 %-------------------CONSTRAINT MODEL--------------------------
 % PLACEMENT VARIABLES:
 array[1..num_plates_lines, 1..num_total_wells_line, 1..2] of var 1..max(num_rows_line, num_cols_line): emptywells_controls_compounds_coordinates::no_output;
-array[1..num_plates_lines, 1..num_total_wells_line] of var 1..num_rows_line*num_cols_line: wells_line_lex_all_different_substitute::no_output;
+array[1..num_plates_lines, 1..num_total_wells_line] of var 1..num_rows_line*num_cols_line: wells_line_lex_all_different_substitute::is_defined_var::no_output;
 
 % if we have too many empty wells, so much so that we don't consider them to be a part of the criteria function then we set empty wells coordinates to a default value
 predicate set_default_empty_well_coords(int: quadrant, int: default_row, int: default_col) =
@@ -903,7 +932,6 @@ constraint forall(i in 1..len_min_dist_criteria
                                            [emptywells_controls_compounds_coordinates[distances_edges_controls_compounds_plates_match[i],k,1],
                                             emptywells_controls_compounds_coordinates[distances_edges_controls_compounds_plates_match[i],k,2]]) >= distances_edges_controls_compounds_minimum[i]
                   ));
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
