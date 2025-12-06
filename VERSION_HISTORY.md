@@ -2,9 +2,13 @@
 
 Note: The listed changes reference equations and sections from the article
 
+## Version 1.3.1 (Dec 6 2025)
+- A more detailed error message when a heuristic used for the replicates_on_same_plate strategy produces unfeasible material allocations, to help the user work around it
+- lex_chain_greater symmetry-breaking constraints are not posted when the criteria-set or a material-concentration has <2 wells (a slight optimization during compilation and, possibly, reduces posting of unnecessary constraints)
+
 ## Version 1.3.0 (Nov 20 2025)
-- updated the constraint model. I replaced the constraints in equation (15) of the original article with. Instead of using criteria-set-minimal-distance-variable = min(the-list-of-distances-in-the-criteria-set), COMPD now uses a set of constraints criteria-set-minimal-distance-variable =< distance-in-the-criteria-set for each distance. It reduces the memory consumption by ~5-10% and, in some cases and solvers, slightly reduces the solution time
-- Added a detailed comment behind quadrant distribution process (COMPD uses deterministic round-robin allocation followed by sequential bin packing). No changes in he behaviour of the model (it remained the same from 1.0), it is added only for posterity
+- updated the constraint model. I replaced the constraints in equation (15) of the original article with. Instead of using criteria-set-minimal-distance-variable = min(the-list-of-distances-in-the-criteria-set), COMPD now uses a set of constraints criteria-set-minimal-distance-variable =< distance-in-the-criteria-set for each distance. It reduces the memory consumption by ~5-10% and, in some cases and some solvers, slightly reduces the solution time
+- Added a detailed comment behind the quadrant distribution process (COMPD uses deterministic round-robin allocation followed by sequential bin packing). No changes in he behaviour of the model (it remained the same from 1.0), it is added for posterity and clarity
 
 ## Version 1.2.9 (Nov 14 2025)
 - refactoring: applying the same approach of helper functions introduced in 1.2.8 to the domain and all optional constraints. Benefits - readability and encapsulated logic. Significantly reduced number of lines
