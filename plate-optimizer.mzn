@@ -16,7 +16,7 @@
 % Description:  A microplate layout designer represented as an optimization problem
 %
 % Authors: Ramiz GINDULLIN (ramiz.gindullin@it.uu.se)
-% Version: 1.3.0
+% Version: 1.3.1
 % Last Revision: November 2025
 %
 
@@ -300,9 +300,25 @@ array[1..num_plates_lines, 1..len_emptywells_controls_compounds] of int: emptywe
                 )
         endif;
 
+% Check that material totals match (detects allocation failures when negatives were clamped to 0)
 constraint assert(forall(p in 1..num_plates_lines, i in 1..len_emptywells_controls_compounds)
                         (emptywells_controls_compounds_qtys[p,i] >= 0),
-                  "Model ERROR! Negative assigned quantities of materials detected:\n" ++ show2d(emptywells_controls_compounds_qtys) ++ "\n"  ++ show(emptywells_controls_compounds_qtys_total) ++ "\nRecommendations: choose a different strategy (set 'replicates_on_same_plate = false' and, if needed, set 'replicates_on_different_plates = true')");
+				  "Model ERROR! Material distribution failed with 'replicates_on_same_plate' strategy.\n" ++
+				      "The available space distribution is too imbalanced to allocate empty wells and controls.\n\n" ++
+				      "Diagnostic Information:\n" ++
+				      "  Number of plates: " ++ show(num_plates_lines) ++ "\n" ++
+				      "  Available space per plate (after compounds): " ++ show(available_wells_per_plates_lines_total) ++ "\n" ++
+				      "  Total available space: " ++ show(available_wells_per_plates_lines_total_sum) ++ "\n" ++
+				      "  Materials to distribute:\n" ++
+				      show(["    " ++ emptywells_controls_compounds_names_concentrations[1,i] ++ ": " ++ 
+				            show(emptywells_controls_compounds_qtys_total[i]) ++ " required, " ++ 
+				            show(sum(p in 1..num_plates_lines)(emptywells_controls_compounds_qtys[p,i])) ++ " allocated\n" 
+				            | i in 1..emptywells_controls_num]) ++
+				      "\nRECOMMENDATIONS:\n" ++
+				      "  1. Use 'replicates_on_different_plates = true' instead (distributes materials evenly across plates)\n" ++
+				      "  2. Manually balance compound distribution to create more uniform available spaces\n" ++
+				      "  3. Use a Python preprocessing script to compute optimal empty wells/controls distribution\n"
+				  );
 
 array[int] of int: emptywells_controls_compounds_indices = [i | i in 1..len_emptywells_controls_compounds];
 % emptywells_controls_compounds_indices - a short-hand index to make modeling easier
@@ -813,7 +829,8 @@ constraint enforce_corner_exclusion(4, num_rows_line - num_corner_empty_wells + 
 
 
 % a symmetry breaking ctr - with the caveat that it isn't the best one I can think of. It has a drawback (somewhat grouping one type of concentrations together, in some cases, - it is fine for now, but later I must think on how to restructure it
-constraint forall(p in 1..num_plates_lines, i in 1..4, j in 1..num_criteria_sets where (j = 1 -> use_min_dist_criteria[p,j]))
+constraint forall(p in 1..num_plates_lines, i in 1..4, j in 1..num_criteria_sets where (j = 1 -> use_min_dist_criteria[p,j]) /\
+                                                                                       quadrant_criteria_counts[p,i,j] >= 2) % Only for 2+ wells
            (lex_chain_greater(array2d(1..2, 1..quadrant_criteria_counts[p,i,j],
                                       [emptywells_controls_compounds_coordinates[p,k,l] | l in 1..2, k in 1..num_total_wells_line
                                        where emptywells_controls_compounds_criteria_ordered[p,k] = j /\
@@ -823,7 +840,8 @@ constraint forall(p in 1..num_plates_lines, i in 1..4, j in 1..num_criteria_sets
                                        ])));
 
 % symmetry breaking ctr - applied if concentrations_on_different_rows or concentrations_on_different_columns
-constraint forall(p in 1..num_plates_lines, i in 1..4, j in 1..len_emptywells_controls_compounds)
+constraint forall(p in 1..num_plates_lines, i in 1..4, j in 1..len_emptywells_controls_compounds where quadrant_on_different_rows_columns[p,i,j] >= 2)
+                                                                                                       % Only for 2+ wells 
            (lex_chain_greater(array2d(1..2, 1..quadrant_on_different_rows_columns[p,i,j],
                                       [emptywells_controls_compounds_coordinates[p,k,l] | l in 1..2, k in 1..num_total_wells_line
                                        where emptywells_controls_compounds_indices_ordered[p,k] = j /\
@@ -912,7 +930,7 @@ constraint min_distance_ctrs = if card(ctrs_criteria) > 0
                              then min([distances_edges_controls_compounds_minimum[j] | j in ctrs_criteria])
                              else 1 
                             endif;
-% Restricting minumum distances within sets
+% Restricting minimum distances within sets
 constraint forall(i in 1..len_min_dist_criteria
 				          where use_min_dist_criteria[distances_edges_controls_compounds_plates_match[i],distances_edges_controls_compounds_sets_match[i]] /\
 		        		          use_fake_edge_wells[  distances_edges_controls_compounds_plates_match[i],distances_edges_controls_compounds_sets_match[i]])
