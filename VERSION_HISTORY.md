@@ -2,6 +2,9 @@
 
 Note: The listed changes reference equations and sections from the article
 
+## Version 1.3.2 (Dec 9 2025)
+- Updated constraints related to min_distance and min_distance_ctrs. i.e, instead of, e.g., min_distance = min(criteria_set_min_distances), using criteria_set_min_distance >= min_distance. It should propagate better and be consistent with the change in constraints introduced in 1.3.0
+
 ## Version 1.3.1 (Dec 6 2025)
 - A more detailed error message when a heuristic used for the replicates_on_same_plate strategy produces unfeasible material allocations, to help the user work around it
 - lex_chain_greater symmetry-breaking constraints are not posted when the criteria-set or a material-concentration has <2 wells (a slight optimization during compilation and, possibly, reduces posting of unnecessary constraints)
