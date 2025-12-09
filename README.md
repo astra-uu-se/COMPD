@@ -10,7 +10,7 @@ This is a constraint optimization model written in MiniZinc. It is used for effe
  - COMPD supports more microplate templates:
    - plate lines with an odd number of rows and/or columns,
    - forcing corners to be empty
-- flexible approach to spreading the materials of the same type, i.e. the thresholds for minimum possible distances are not hard-coded and, instead, are found dynamically.
+- flexible approach to spreading the materials of the same type, i.e., the thresholds for minimum possible distances are not hard-coded and, instead, are found dynamically.
 
 The full explanation can be found in the paper "Constraint Optimization of MicroPlate Designs" (TBD: link and DOI)
 
