@@ -2,6 +2,14 @@
 
 Note: The listed changes reference equations and sections from the article
 
+## Version 1.3.3 (Jan 19 2026)
+- Updated symmetry-breaking lexicographical constraints (when optional constraints are disabled or not applied). Instead of enforcing the order which goes from replicates of first concentration, to replicates of second concentration, to third, etc, the lexigographical order now mixes the order of the replicates, i.e., instead of lex_greater_chain([Coordinates_j | j=1..n]) it is lex_greater_chain([Coordinates_j | j=randomized_order_of_wells]). This should remove the situation when a specific concentration would have a tendency to gravitate towards certain rows. The new allocation is much more equitable. NOTE: if the criteria set is under the optional constraints, then this change does not affect the constraint, since the lex_chain_greater is applied on individual concentrations.
+- In the same spirit, when we list concentrations in the vector emptywells_controls_compounds_names_concentrations, the previous versions listed them in a given manner (as they listed in the data file). In 1.3.3, we shuffle the list of concentrations to randomize their assignments within quadrants. It is useful in situations when the number of replicates for each material-concentration is divisible by 4: in that situation, all concentrations of the same dose would be in the same quadrant, which is not desirable. It is a very specific edge case, but it needs to be accounted for. The resulting list would look like this: [dr1-ct2, dr1-ct1, dr1-ct3, dr2-ct3, dr2-ct2, dr2-ct1, dr3-ct1, dr3-ct3, ...]
+Note: This order must be matched in the declaration of array emptywells_controls_compounds_qtys_total (if a change is introduced, where the number of replicates between concentrations differs.
+
+These changes do not affect performance, but they will result in more robust microplate layouts.
+
+
 ## Version 1.3.2 (Dec 9 2025)
 - Updated constraints related to min_distance and min_distance_ctrs. i.e, instead of, e.g., min_distance = min(criteria_set_min_distances), using criteria_set_min_distance >= min_distance. It should propagate better and be consistent with the change in constraints introduced in 1.3.0
 
@@ -10,8 +18,8 @@ Note: The listed changes reference equations and sections from the article
 - lex_chain_greater symmetry-breaking constraints are not posted when the criteria-set or a material-concentration has <2 wells (a slight optimization during compilation and, possibly, reduces posting of unnecessary constraints)
 
 ## Version 1.3.0 (Nov 20 2025)
-- updated the constraint model. I replaced the constraints in equation (15) of the original article with. Instead of using criteria-set-minimal-distance-variable = min(the-list-of-distances-in-the-criteria-set), COMPD now uses a set of constraints criteria-set-minimal-distance-variable =< distance-in-the-criteria-set for each distance. It reduces the memory consumption by ~5-10% and, in some cases and some solvers, slightly reduces the solution time
-- Added a detailed comment behind the quadrant distribution process (COMPD uses deterministic round-robin allocation followed by sequential bin packing). No changes in he behaviour of the model (it remained the same from 1.0), it is added for posterity and clarity
+- updated the constraint model. I replaced the constraints in equation (15) of the original article with. Instead of using criteria-set-minimal-distance-variable = min(the-list-of-distances-in-the-criteria-set), COMPD now uses a set of constraints, criteria-set-minimal-distance-variable =< distance-in-the-criteria-set for each distance. It reduces the memory consumption by ~5-10% and, in some cases and some solvers, slightly reduces the solution time
+- Added a detailed comment behind the quadrant distribution process (COMPD uses deterministic round-robin allocation followed by sequential bin packing). No changes in the behaviour of the model (it remained the same from 1.0), it is added for posterity and clarity
 
 ## Version 1.2.9 (Nov 14 2025)
 - refactoring: applying the same approach of helper functions introduced in 1.2.8 to the domain and all optional constraints. Benefits - readability and encapsulated logic. Significantly reduced number of lines
@@ -21,7 +29,7 @@ Note: The listed changes reference equations and sections from the article
 
 ## Version 1.2.7 (Nov 14 2025)
 - further minor refactoring to slightly reduce the number of lines (not that much) and make the code slightly more readable (removing well_included_by_optional_constraints since it's possible to simply use negation of well_excluded_by_optional_constraints)
-- fixed an old bug that was present since 1.0: constraint that iterated over materials and used well_excluded_by_optional_constraints (or its equivalent in 1.0), was incorrectly passing a criteria set index instead of a material index. In most cases, it did not produce a serious violation of optional constraints, but it was still an error in logic which the model was supposed to obey.
+- fixed an old bug that was present since 1.0: constraint that iterated over materials and used well_excluded_by_optional_constraints (or its equivalent in 1.0), was incorrectly passing a criteria set index instead of a material index. In most cases, it did not produce a serious violation of optional constraints, but it was still an error in logic that the model was supposed to obey.
 
 ## Version 1.2.6 (Nov 13 2025)
 - further minor refactoring to slightly reduce the number of lines (not that much) and make the code slightly more readable (introducing functions well_excluded_by_optional_constraints and well_included_by_optional_constraints)
