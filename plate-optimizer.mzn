@@ -150,6 +150,29 @@ constraint assert(min(compound_concentrations++[0]) <= num_total_wells_line, "In
 
 int: len_emptywells_controls_compounds = 1 + sum(control_concentrations) + sum(compound_concentrations);
 
+
+% Pre-compute random permutations for each control's concentrations
+% This ensures names and quantities use the SAME permutation.
+% See the declation of emptywells_controls_compounds_categories for explanation
+array[1..num_controls, int] of int: control_concentration_permutations =
+  array2d(1..num_controls, 1..max([control_concentrations[i] | i in 1..num_controls]),
+          [if j <= control_concentrations[i] 
+           then random_permutation(control_concentrations[i])[j]
+           else 0  % padding for controls with fewer concentrations
+           endif
+           | i in 1..num_controls, 
+             j in 1..max([control_concentrations[k] | k in 1..num_controls])]);
+
+% Pre-compute random permutations for each compound's concentrations
+array[1..compounds, int] of int: compound_concentration_permutations =
+  array2d(1..compounds, 1..max([compound_concentrations[i] | i in 1..compounds]),
+          [if j <= compound_concentrations[i] 
+           then random_permutation(compound_concentrations[i])[j]
+           else 0  % padding
+           endif
+           | i in 1..compounds, 
+             j in 1..max([compound_concentrations[k] | k in 1..compounds])]);
+
 % IMPORTANT: We assume that controls and compounds are placed sequentially. i.e. we can't have ["ctrs", "comp", "ctrs"] or ["comp 1", "comp 2", "comp 1"] etc
 %   A reasonable assumption, as these arrays are generated authomatically
 %   BUT! If this assumption is broken then some of the later logic will be broken. Namely WRT array "emptywells_controls_compounds_criteria_ordered"
@@ -161,19 +184,27 @@ array[1..2,1..len_emptywells_controls_compounds] of string: emptywells_controls_
                  [control_names[i]  | i in 1..num_controls, j in 1..control_concentrations[i]] ++
                  [compound_names[i] | i in 1..compounds,    j in 1..compound_concentrations[i]] ++
                  [""] ++
-                 [control_concentration_names[i,j]  | i in 1..num_controls, j in random_permutation(control_concentrations[i])] ++
-                 [compound_concentration_names[i,j] | i in 1..compounds,    j in random_permutation(compound_concentrations[i])]
-                 % random_permutation(*_concentrations[i]) is because we shuffle the list of concetnrations, as to randomize them within quadrants.
+                 [control_concentration_names[i,  control_concentration_permutations[i,j]]  | i in 1..num_controls, j in 1..control_concentrations[i]] ++
+                 [compound_concentration_names[i, compound_concentration_permutations[i,j]] | i in 1..compounds,    j in 1..compound_concentrations[i]]
+                 % random_permutation(*_concentrations[i]) is because we shuffle the list of concenrtations, as to randomize them within quadrants.
                  % It is useful in the situations when the number of replicates for each material-concentration is divisible by 4:
                  % in that situation, all concentrations of the same dose would be in the same quadrant, which is not desirable.
                  % It is a very specific edge case, but it needs to be accounted for.
                  % The resulting list would like like this: [dr1-ct2, dr1-ct1, dr1-ct3, dr2-ct3, dr2-ct2, dr2-ct1, dr3-ct1, dr3-ct3, ...]
+                 % This order must be matched in the declation of array emptywells_controls_compounds_qtys_total (if a change is introduced,
+                 % where the number of replicates between concentrations differs.
                  );
 
 % collect all quantitites before assigning them between plates / lines
 array[1..len_emptywells_controls_compounds] of int: emptywells_controls_compounds_qtys_total =
                  [num_empty_wells] ++
-                 [control_replicates[i] | i in 1..num_controls, j in 1..control_concentrations[i]] ++
+                 
+                 % If the number of replicates depends on the concentration (unlike the current data files),
+                 % then swap "control_replicates[i]" to "control_replicates[i, control_concentration_permutations[i,j]]" in the line below
+                 [control_replicates[i]  | i in 1..num_controls, j in 1..control_concentrations[i]] ++
+                 
+                 % If the number of replicates depends on the concentration (unlike the current data files),
+                 % then swap "compound_replicates[i]" to "compound_replicates[i, compound_concentration_permutations[i,j]]" in the line below
                  [compound_replicates[i] | i in 1..compounds, j in 1..compound_concentrations[i]];
 
 % these parameters are only used for replicates_on_same_plate strategy when num_plates_lines > 1
