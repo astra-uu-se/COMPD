@@ -186,12 +186,12 @@ array[1..2,1..len_emptywells_controls_compounds] of string: emptywells_controls_
                  [""] ++
                  [control_concentration_names[i,  control_concentration_permutations[i,j]]  | i in 1..num_controls, j in 1..control_concentrations[i]] ++
                  [compound_concentration_names[i, compound_concentration_permutations[i,j]] | i in 1..compounds,    j in 1..compound_concentrations[i]]
-                 % random_permutation(*_concentrations[i]) is because we shuffle the list of concenrtations, as to randomize them within quadrants.
+                 % random_permutation(*_concentrations[i]) is because we shuffle the list of concentrationsto randomize their assignments within quadrants.
                  % It is useful in the situations when the number of replicates for each material-concentration is divisible by 4:
                  % in that situation, all concentrations of the same dose would be in the same quadrant, which is not desirable.
                  % It is a very specific edge case, but it needs to be accounted for.
                  % The resulting list would like like this: [dr1-ct2, dr1-ct1, dr1-ct3, dr2-ct3, dr2-ct2, dr2-ct1, dr3-ct1, dr3-ct3, ...]
-                 % This order must be matched in the declation of array emptywells_controls_compounds_qtys_total (if a change is introduced,
+                 % This order must be matched in the declaration of array emptywells_controls_compounds_qtys_total (if a change is introduced,
                  % where the number of replicates between concentrations differs.
                  );
 
@@ -866,10 +866,10 @@ constraint set_quadrant_domain(4, 2, ceil(num_cols_line / 2) + 1..num_cols_line)
 constraint enforce_corner_exclusion(4, num_rows_line - num_corner_empty_wells + 1, false, num_cols_line - num_corner_empty_wells, true);
 
 
-% a symmetry breaking ctr - with the caveat that it isn't the best one I can think of. It has a drawback (somewhat grouping one type of concentrations together, in some cases, - it is fine for now, but later I must think on how to restructure it
+% a symmetry-breaking ctr - with the caveat that it isn't the best one I can think of. It has a drawback (somewhat grouping one type of concentrations together, in some cases, - it is fine for now, but later I must think on how to restructure it
 constraint forall(p in 1..num_plates_lines, i in 1..4, j in 1..num_criteria_sets where (j = 1 -> use_min_dist_criteria[p,j]) /\
                                                                                        quadrant_criteria_counts[p,i,j] >= 2) % Only for 2+ wells
-  (% we first shuffle the list of replicates, to ensure that specific concentrations are not forced to be on certain ranges of rows
+  (% We first shuffle the list of replicates, to ensure that specific concentrations are not forced to be on certain ranges of rows
    let {
     % 1. Collect wells in original order
     array[int] of int: wells_original = 
@@ -878,7 +878,7 @@ constraint forall(p in 1..num_plates_lines, i in 1..4, j in 1..num_criteria_sets
                                               well_excluded_by_optional_constraints(i,p,emptywells_controls_compounds_indices_ordered[p,k]) /\
                                               (j = 1 -> use_min_dist_criteria[p,j])], % exlude empty wells if not a part of the criteria],
 
-    % 2. Generate random permutation
+    % 2. Generate a random permutation
     array[int] of int: perm = random_permutation(length(wells_original)),
     
     % 3. Reorder wells
@@ -951,7 +951,7 @@ constraint apply_gcc_constraint_allplates(emptywells_controls_compounds_concentr
                                           2, {3,4}, ceil(num_cols_line / 2) + 1..num_cols_line, num_rows_line * num_plates_lines);
 
 
-% making sure that we don't place two or more materials in a same well with a lex_alldifferent constraint substitution placed upon replicate coordinates
+% making sure that we don't place two or more materials in the same well with a lex_alldifferent constraint substitution placed upon replicate coordinates
 constraint forall(p in 1..num_plates_lines, i in 1..num_total_wells_line)
                  (wells_line_lex_all_different_substitute[p,i] = 
                   (emptywells_controls_compounds_coordinates[p,i,1] - 1) * num_cols_line + emptywells_controls_compounds_coordinates[p,i,2]);
