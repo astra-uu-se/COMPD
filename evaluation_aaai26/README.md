@@ -12,16 +12,14 @@ Note: The experiments require Python 3 to be installed. The package `matplotlib`
 Either:
 
   1. Uncompress the file `layouts.zip` (these are layouts which we used in the evaluation), or
-  2. Download [random and PLAID layouts](https://github.com/pharmbio/plaid/tree/multiplate-poc/simulations/layouts) and generate COMPD layouts with commands:
+  2. Download [random and PLAID layouts](https://github.com/pharmbio/plaid/tree/multiplate-poc/simulations/layouts) and generate COMPD layouts with commands (approximately, 10 hours):
 
      ```
-     python3 create_compd_layouts.py
-     python3 create_compd_layouts_dose_response.py
+     python3 create_compd_layouts.py & python3 create_compd_layouts_dose_response.py
      ```
 ## Step 2 - Perform the experiments
 
-  1. Execute Jupyter notebooks `dose-response-experiments.ipynb` and `screening-experiments.ipynb`.
-  2. Create empty directories:
+  1. Create empty directories:
      - `generated-data\dose-response`
      - `generated-data\quality-assessment-metrics`
      - `generated-data\screening`
@@ -31,6 +29,7 @@ Either:
      - `generated-plots\quality-assessment-metrics`
      - `screening-supplement`
      - `latex-tables`
+  2. Execute Jupyter notebooks `dose-response-experiments.ipynb` and `screening-experiments.ipynb`.
   3. Execute remaining Jupyter notebooks. Note that in the notebooks, the citation of a specific article figure is done according to the PLAID article. Consult `detailed experimental results.pdf` for the correct mapping to the newly generated figures.
 
 ## Step 3 - Update the supplementary materials
