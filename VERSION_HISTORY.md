@@ -9,7 +9,7 @@ Note: The listed changes reference equations and sections from the article
 	- randomize_order_of_material_concentrations to enable the shuffling of controls and concentrations during quadrant distribution (making the change in 1.3.3 optional)
  	- flag_consolidate_controls if the user wants all controls to be placed within the same criteria set or not. If disabled, each control type is optimized separately from each other, making possible placing, e.g., positive and negative controls as neighbours to each other
 
-- Set the number of fake edge wells to 0, as of now (a tunable parameter, visible to the user). The reasoning is that fake edge wells are likely useful for sparse layout optimization. If the layout is dense, some materials will likely be pushed to edges anyway.
+- Set the number of fake edge wells to 0, as of now (a tunable parameter, visible to the user). The reasoning is that fake edge wells are likely useful for sparse layout optimization (thus, the user can set it to 4 or 6). If the layout is dense, some materials will likely be pushed to edges anyway.
 
 
 ## Version 1.3.3 (Jan 19 2026)
