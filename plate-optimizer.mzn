@@ -1277,6 +1277,3 @@ output ["criteria function = "];
 output ["\(- min_distance * 1000 - min_distance_ctrs * 100 - sum(distances_edges_controls_compounds_minimum))\n"];
 output [if debugging then show([min_distance] ++ distances_edges_controls_compounds_minimum) else "" endif];
 output [if debugging then "\n" else "" endif];
-
-
-output [show2d(compound_concentration_permutations)];
