@@ -2,6 +2,13 @@
 
 Note: The listed changes reference equations and sections from the article
 
+## Version 1.3.4 (Feb 6)
+- Fix a critical bug for the previous change: the randomized permutation of controls an concentratios often produced repeated results.
+- Moved model parameters up, so the user has easier time accessign them. Added proper explanations and two new flags:
+
+	- randomize_order_of_material_concentrations to enable the shuffling of controls and concentrations during quadrant distribution (making the change in 1.3.3 optional)
+ 	- flag_consolidate_controls if the user wants all controls to be placed within the same criteria set or not. If disabled, each control type is optimized separately from each other, making possible placing, e.g., positive and negative controls as neighbours to each other
+
 ## Version 1.3.3 (Jan 19 2026)
 - Updated symmetry-breaking lexicographical constraints (when optional constraints are disabled or not applied). Instead of enforcing the order which goes from replicates of first concentration, to replicates of second concentration, to third, etc, the lexigographical order now mixes the order of the replicates, i.e., instead of lex_greater_chain([Coordinates_j | j=1..n]) it is lex_greater_chain([Coordinates_j | j=randomized_order_of_wells]). This should remove the situation when a specific concentration would have a tendency to gravitate towards certain rows. The new allocation is much more equitable. NOTE: if the criteria set is under the optional constraints, then this change does not affect the constraint, since the lex_chain_greater is applied on individual concentrations.
 - In the same spirit, when we list concentrations in the vector emptywells_controls_compounds_names_concentrations, the previous versions listed them in a given manner (as they listed in the data file). In 1.3.3, we shuffle the list of concentrations to randomize their assignments within quadrants. It is useful in situations when the number of replicates for each material-concentration is divisible by 4: in that situation, all concentrations of the same dose would be in the same quadrant, which is not desirable. It is a very specific edge case, but it needs to be accounted for. The resulting list would look like this: [dr1-ct2, dr1-ct1, dr1-ct3, dr2-ct3, dr2-ct2, dr2-ct1, dr3-ct1, dr3-ct3, ...]
