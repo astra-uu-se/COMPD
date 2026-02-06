@@ -16,8 +16,8 @@
 % Description:  A microplate layout designer represented as an optimization problem
 %
 % Authors: Ramiz GINDULLIN (ramiz.gindullin@it.uu.se)
-% Version: 1.3.3
-% Last Revision: January 2026
+% Version: 1.3.4
+% Last Revision: February 2026
 %
 % =======================================================================================
 % COORDINATE SYSTEM NOTATION - READ THIS FIRST!
@@ -32,7 +32,7 @@
 % 2. FULL PLATE COORDINATES (used only in output):
 %    - Ranges: 1..num_rows × 1..num_cols  
 %    - Includes edge and corner wells
-%    - Conversion: calculate_line_index() maps inner → full coordinates
+%    - Conversion: calculate_line_index() maps inner to full coordinates
 %
 % CRITICAL: When modifying constraints, always work in INNER coordinates!
 %           Only the output section uses full plate coordinates.
@@ -40,6 +40,37 @@
 
 include "globals.mzn";
 
+%-------------------COMPD parameters--------------------------
+%%% Tune to change performance / quality of a solution %%%
+bool:  flag_consolidate_controls = true;
+       % if true  - all controls are placed in a single criteria set (unless they cover more than half of the plate line)
+       % if false - each control is placed in an individual criteria set 
+       % RATIONALE - when set to false, controls of various types can be grouped together,  e.g., positive and negative controls 
+       % can be neighbours, capturing the same plate effect which can be advantegous in some situations
+bool:  randomize_order_of_material_concentrations = true;
+       % if true  - the order of concentrations within compounds is randomized. Helps with an edge case when the
+       %            replicate numbers for compounds are divisible by 4
+       %            (see emptywells_controls_compounds_names_concentrations declaration)
+       % if false - default order.
+int:   num_threshold_use_fake_edge_wells = 0;
+       % if the criteria set for a compound contains from 2 to num_threshold_use_fake_edge_wells replicates, 
+       % apply fake edge wells when calculating the distances for the criteria
+       % Set to 4 or 6 when used with sparse layouts (i.e. layouts with a relatively small number of compounds and a lot of empty space)
+       % Set to 0 otherwise
+int:   num_wells_set_criteria            = if num_total_wells_line < 300 then 90   else 120  endif;
+float: num_threshold_min_dist_criteria   = if num_total_wells_line < 300 then 0.35 else 0.25 endif;
+       % RATIONALE for num_wells_set_criteria and num_threshold_min_dist_criteria: 
+       %            With many replicates (e.g., >25% of plate line), distance optimization has
+       %            diminishing returns because:
+       %            1. Quadrant allocation already forces spatial spread (not clustered)
+       %            2. Computational cost (O(n²) distances) grows rapidly
+       %            3. Downstream statistical correction (LOESS, GAM) can handle residual
+       %               plate effects more effectively than micro-optimizing well placement
+       %            NOTE: Users can increase threshold via num_wells_set_criteria if needed
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%-------------------FUNCTIONS--------------------------
 function int: compound_index(int: cmpds, string: cmpd, array[int] of string: cmpds_names) =
                             min([i | i in 1..cmpds where cmpd = cmpds_names[i]]);
 
@@ -51,10 +82,10 @@ function var int: distance_manhattan(array[1..2] of var int: P1, array[1..2] of 
 function var int: calculate_line_index(bool: edge_type, int: edge_size, int: line_size, var int: line, var int: coordinate) =
          if edge_type then (line - 1) * (2 * edge_size + line_size) + edge_size + coordinate
                       else (line - 1) *                  line_size  + edge_size + coordinate endif;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-%%%% Input Data  %%%%
-
+%-------------------INPUT DATA--------------------------
 %% Information about constraints %%
 bool: allow_empty_wells;
 bool: replicates_on_different_plates;
@@ -72,7 +103,6 @@ bool: inner_empty_edge = inner_empty_edge_input default true;
 %% Compounds %%
 int: compounds; %% number of drugs/compounds
 array [1..compounds] of int: compound_replicates;
-int: replicates = max(compound_replicates++[0]);
 array [1..compounds] of int: compound_concentrations;
 int: max_compound_concentrations = max(compound_concentrations++[0]);
 
@@ -139,12 +169,9 @@ int: num_cols_line = if inner_empty_edge
 
 constraint assert((2*num_corner_empty_wells <= max([num_rows_line, num_cols_line])),
                    "Size of corners exceeds dimension/-s if the plate:\nnumber of rows per line = \(num_rows_line)\nnumber of columns per line = \(num_cols_line)\nthe size of a corner = \(num_corner_empty_wells)");
-
-%%% Model Parameters - tune to change performance / quality of a solution %%%
-int: num_wells_set_criteria              = if num_total_wells_line < 300 then 90   else 120  endif;
-float: num_threshold_min_dist_criteria   = if num_total_wells_line < 300 then 0.35 else 0.25 endif;
-float: num_threshold_use_fake_edge_wells = if num_total_wells_line < 300 then 0.05 else 0.03 endif; 
+ 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 %-------------------PREPROCESSING - plate and quadrant distribution--------------------------
 
@@ -178,24 +205,33 @@ int: len_emptywells_controls_compounds = 1 + sum(control_concentrations) + sum(c
 % Pre-compute random permutations for each control's concentrations
 % This ensures names and quantities use the SAME permutation.
 % See the declation of emptywells_controls_compounds_categories for explanation
-array[1..num_controls, int] of int: control_concentration_permutations =
-  array2d(1..num_controls, 1..max([control_concentrations[i] | i in 1..num_controls]),
+array[1..num_controls] of array[int] of int: control_permutations_shuffled = [random_permutation(control_concentrations[i]) | i in 1..num_controls];
+array[1..num_controls] of array[int] of int: control_permutations_ordered =  [[j | j in 1..control_concentrations[i]] | i in 1..num_controls];
+array[1..num_controls, 1..max(control_concentrations)] of int: control_concentration_permutations =
+  array2d(1..num_controls, 1..max(control_concentrations),
           [if j <= control_concentrations[i] 
-           then random_permutation(control_concentrations[i])[j]
-           else 0  % padding for controls with fewer concentrations
+           then (if randomize_order_of_material_concentrations 
+                 then control_permutations_shuffled[i][j]
+                 else control_permutations_ordered[i][j]
+                 endif)
+           else 0
            endif
-           | i in 1..num_controls, 
-             j in 1..max([control_concentrations[k] | k in 1..num_controls])]);
+           | i in 1..num_controls, j in 1..max(control_concentrations)]);
 
 % Pre-compute random permutations for each compound's concentrations
-array[1..compounds, int] of int: compound_concentration_permutations =
-  array2d(1..compounds, 1..max([compound_concentrations[i] | i in 1..compounds]),
+array[1..compounds] of array[int] of int: compound_concentration_permutations_shuffled = [random_permutation(compound_concentrations[i]) | i in 1..compounds];
+array[1..compounds] of array[int] of int: compound_concentration_permutations_ordered =  [[j | j in 1..compound_concentrations[i]] | i in 1..compounds];
+array[1..compounds, 1..max(compound_concentrations)] of int: compound_concentration_permutations =
+  array2d(1..compounds, 1..max(compound_concentrations),
           [if j <= compound_concentrations[i] 
-           then random_permutation(compound_concentrations[i])[j]
-           else 0  % padding
+           then (if randomize_order_of_material_concentrations 
+                 then compound_concentration_permutations_shuffled[i][j]
+                 else compound_concentration_permutations_ordered[i][j]
+                 endif)
+           else 0
            endif
-           | i in 1..compounds, 
-             j in 1..max([compound_concentrations[k] | k in 1..compounds])]);
+           | i in 1..compounds, j in 1..max(compound_concentrations)]);
+
 
 % IMPORTANT: We assume that controls and compounds are placed sequentially. i.e. we can't have ["ctrs", "comp", "ctrs"] or ["comp 1", "comp 2", "comp 1"] etc
 %   A reasonable assumption, as these arrays are generated authomatically
@@ -406,7 +442,8 @@ constraint forall(i in 1..num_plates_lines)
 array[1..num_plates_lines] of int: len_emptywells_controls_compounds_criteria_sets = 
  [length([1]
           ++
-         if sum(i in 1..len_emptywells_controls_compounds where emptywells_controls_compounds_categories[i] = "ctrs")
+         if flag_consolidate_controls /\
+            sum(i in 1..len_emptywells_controls_compounds where emptywells_controls_compounds_categories[i] = "ctrs")
                (emptywells_controls_compounds_qtys[p,i]) < num_total_wells_line div 2
          then  [1]
          else  [1 | i in 1..len_emptywells_controls_compounds where emptywells_controls_compounds_categories[i] = "ctrs"]
@@ -429,7 +466,8 @@ array[1..num_plates_lines, 1..num_criteria_sets] of set of int:
            array2d(1..num_plates_lines, 1..num_criteria_sets,
                 [([{i | i in 1..len_emptywells_controls_compounds where emptywells_controls_compounds_categories[i] = "ew"}]
                     ++
-                   if sum(i in 1..len_emptywells_controls_compounds where emptywells_controls_compounds_categories[i] = "ctrs")
+                   if flag_consolidate_controls /\
+                      sum(i in 1..len_emptywells_controls_compounds where emptywells_controls_compounds_categories[i] = "ctrs")
                          (emptywells_controls_compounds_qtys[p,i]) < num_total_wells_line div 2
                    then  [{i | i in 1..len_emptywells_controls_compounds where emptywells_controls_compounds_categories[i] = "ctrs"}]
                    else  [{i} | i in 1..len_emptywells_controls_compounds where emptywells_controls_compounds_categories[i] = "ctrs"]
@@ -460,7 +498,8 @@ array[1..num_plates_lines, 1..num_criteria_sets] of string:
            array2d(1..num_plates_lines, 1..num_criteria_sets,
                 [(["ew"]
                     ++
-                   if sum(i in 1..len_emptywells_controls_compounds where emptywells_controls_compounds_categories[i] = "ctrs")
+                   if flag_consolidate_controls /\
+                      sum(i in 1..len_emptywells_controls_compounds where emptywells_controls_compounds_categories[i] = "ctrs")
                          (emptywells_controls_compounds_qtys[p,i]) < num_total_wells_line div 2
                    then  ["ctrs"]
                    else  ["ctrs" | i in 1..len_emptywells_controls_compounds where emptywells_controls_compounds_categories[i] = "ctrs"]
@@ -771,7 +810,7 @@ array[1..num_plates_lines, 1..num_criteria_sets] of bool: use_fake_edge_wells =
                                           [num_criteria_set_line[p,j] > 0 /\
                                            emptywells_controls_compounds_criteria_sets_categories[p,j] != "ctrs" /\
                                            emptywells_controls_compounds_criteria_sets_categories[p,j] != "ew" /\
-                                           num_criteria_set_line[p,j] <= 6
+                                           num_criteria_set_line[p,j] <= num_threshold_use_fake_edge_wells
                                            | p in 1..num_plates_lines, j in 1..num_criteria_sets]);
 int: num_edges = 16;
 % Fake edges are always generated
@@ -1238,3 +1277,6 @@ output ["criteria function = "];
 output ["\(- min_distance * 1000 - min_distance_ctrs * 100 - sum(distances_edges_controls_compounds_minimum))\n"];
 output [if debugging then show([min_distance] ++ distances_edges_controls_compounds_minimum) else "" endif];
 output [if debugging then "\n" else "" endif];
+
+
+output [show2d(compound_concentration_permutations)];
