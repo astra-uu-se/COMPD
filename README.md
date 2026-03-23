@@ -32,7 +32,22 @@ See file `VERSION_HISTORY.md` for details
 
 COMPD is developed by [Ramiz Gindullin](https://orcid.org/0000-0003-4947-9641) and [Maria Andreina Francisco Rodriguez](https://orcid.org/0000-0001-8745-9858).
 
-Paper "Constraint Optimization of MicroPlate Designs" (AAAI'26, currently in publishing) can be used to cite COMPD.
+The following from [AAAI'26](https://doi.org/10.1609/aaai.v40i17.38438) can be used to cite COMPD:
+
+Gindullin, R., & Rodríguez, M. A. F. (2026, March). Constraint Optimization of MicroPlate Designs. In Proceedings of the AAAI Conference on Artificial Intelligence (Vol. 40, No. 17, pp. 14243-14250).
+
+```
+@inproceedings{gindullin2026constraint,
+  title={Constraint Optimization of MicroPlate Designs},
+  author={Gindullin, Ramiz and Rodr{\'\i}guez, Mar{\'\i}a Andre{\'\i}na Francisco},
+  booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume={40},
+  number={17},
+  pages={14243--14250},
+  year={2026}
+}
+```
+
 
 ## License
 COMPD has an Apache 2.0 LICENSE. The COMPD team accepts no responsibility or liability for the use of COMPD or any direct or indirect damages arising out of its use.
